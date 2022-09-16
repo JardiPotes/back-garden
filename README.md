@@ -5,9 +5,14 @@ TO Initialize the project :
 
 ressources : https://realpython.com/django-setup/
 
-- prepare the environment :
-In your project folder : 
-   	run >python3 -m venv env
+create a folder in which you will put 
+-the env in a subfolder
+-the repo from github in a subfolder
+
+
+prepare the environment :
+create your django environment in your env folder:
+run >>python3 -m venv env
 Then to activate the environment 
 run >env\Scripts\activate
 if it’s working : “(env) C:\Users\etc\your\path)”
