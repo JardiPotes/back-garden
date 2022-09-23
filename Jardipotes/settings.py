@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'pomme_d_API',
+    'user_authentications'
 ]
 
 MIDDLEWARE = [
