@@ -19,9 +19,8 @@ django-environ = "^0.9.0"
 djangorestframework = "^3.14.0"
 
 [tool.poetry.extras]
-mysql = ["mysqlclient"]
 pgsql = ["psycopg2"]
-databases = ["mysqlclient", "psycopg2"]
+databases = ["psycopg2"]
 
 [build-system]
 requires = ["poetry-core"]
