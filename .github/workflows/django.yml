@@ -41,7 +41,7 @@ jobs:
         # ensures this only runs on a cache miss.
       - run: |
           poetry update
-          poetry install -E "pgsql" --no-interaction --no-root
+          poetry install --no-interaction
 
       - name: Launch DB
         run: |

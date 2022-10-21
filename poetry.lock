@@ -182,7 +182,7 @@ name = "psycopg2"
 version = "2.9.3"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [[package]]
@@ -291,14 +291,10 @@ category = "main"
 optional = false
 python-versions = ">=2"
 
-[extras]
-databases = ["psycopg2"]
-pgsql = ["psycopg2"]
-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4c93008a5b1554265b555948eeb7b95cde969b09cc75a9cb5a97277229d67654"
+content-hash = "ad173a787a442645e7372e9606115008a660ef74ab89e38fdc520442053a3b48"
 
 [metadata.files]
 asgiref = [
