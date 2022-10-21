@@ -7,13 +7,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user_authentications', '0010_alter_user_email_alter_user_password_and_more'),
+        ('accounts', '0010_alter_user_email_alter_user_password_and_more'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='user',
             name='password',
-            field=models.CharField(max_length=255, validators=[django.core.validators.MinLengthValidator(8)]),
+            field=models.CharField(max_length=255, validators=[
+                                   django.core.validators.MinLengthValidator(8)]),
         ),
     ]
