@@ -7,20 +7,24 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user_authentications', '0007_alter_users_email'),
+        ('accounts', '0007_alter_users_email'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='User',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('username', models.CharField(default='test_user', max_length=25, unique=True)),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('username', models.CharField(
+                    default='test_user', max_length=25, unique=True)),
                 ('first_name', models.CharField(max_length=25, null=True)),
                 ('last_name', models.CharField(max_length=25, null=True)),
-                ('email', models.EmailField(default='test@test.test', max_length=25, unique=True)),
+                ('email', models.EmailField(
+                    default='test@test.test', max_length=25, unique=True)),
                 ('password', models.CharField(default='testtest', max_length=25)),
-                ('password_updated_at', models.DateTimeField(default=django.utils.timezone.now, null=True)),
+                ('password_updated_at', models.DateTimeField(
+                    default=django.utils.timezone.now, null=True)),
                 ('profile_image', models.URLField(null=True)),
                 ('bio', models.TextField(blank=True, null=True)),
                 ('has_garden', models.BooleanField(default=False)),
