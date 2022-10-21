@@ -2,10 +2,12 @@ from .models import User
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from .serializers import UserSerializer
+from .serializers import LoginSerializer
+from .views import createUser
 from rest_framework import status
 
 
-class UserTests(APITestCase):
+class CreateUserTests(APITestCase):
     def test_create_user(self):
 
         url = reverse('register')
@@ -39,7 +41,12 @@ class UserTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(User.objects.count(), 0)
 
-    def test_list_user(self):
-        url = reverse('users')
-        response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class UserLoginTest(APITestCase):
+    def test_user_login_with_random_element(self):
+        url = reverse('login')
+        data = {"email": "testinguser@test.test", "password": "SZsdqeeas123"}
+
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
