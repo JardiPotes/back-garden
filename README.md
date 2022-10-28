@@ -1,21 +1,37 @@
-# back-garden
+# Back-Garden
 
+Back-Garden is the backend application for our JardiPotes project, a web app where people can book gardens to enjoy joyful moments with hosts.
 
-TO Initialize the project : 
+## Setting up the project:
 
-ressources : https://realpython.com/django-setup/
-
+All dependencies of this project are dealt by poetry.
+The database is on a Docker image, so you'll need to install Docker.
+In order to retrieve all necessary dependencies, you need to:
 
 - Install poetry: https://python-poetry.org/docs/#installation
-- Activate the environment : `poetry shell`
-- Then run `poetry install`
+- Create your `.env` file with POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD
 
-Lancer la bdd : `docker-compose up -d` (installation préalable de Docker nécessaire)
+### How to run the prorject?
 
-`cd JardiPotes`
+Once you've cloned this repository and are ready to get your feet wet, you need to follow these steps to be able to run the app correctly.
 
-run `code .`  to open the django project
+- Activate the dev environment: `poetry shell`
+- Install all dependencies: `poetry install`
+- Launch the database: `docker-compose up -d`
 
-run `python manage.py runserver` and copy the url to your browser
+#### Interacting with database
 
-Normally : “The install worked successfully! Congratulations!”
+As all Django apps, everytime when you make a change on model files, you need to run these commands:
+
+- `python manage.py makemigrations`
+- `python manage.py migrate`
+
+This includes token implementation as well.
+
+#### How to run tests?
+
+`poetry run python manage.py test`
+
+#### How to launch the server?
+
+`python manage.py runserver`
