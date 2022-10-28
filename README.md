@@ -6,7 +6,7 @@ Back-Garden is the backend application for our JardiPotes project, a web app whe
 
 All dependencies of this project are dealt by poetry.
 The database is on a Docker image, so you'll need to install Docker.
-In order to retrieve all necessary dependency, you need to:
+In order to retrieve all necessary dependencies, you need to:
 
 - Install poetry: https://python-poetry.org/docs/#installation
 - Create your `.env` file with POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD
