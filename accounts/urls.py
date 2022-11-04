@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from rest_framework.authtoken.views import obtain_auth_token
 
@@ -15,5 +15,8 @@ urlpatterns = [
     path('update_user/<str:pk>/', views.update_user, name="update"),
     path('delete/<str:pk>/', views.delete_user, name="delete"),
     path('auth/', obtain_auth_token),
+    path('password_reset/',
+         include('django_rest_passwordreset.urls', namespace='password_reset')),
+
 
 ]
