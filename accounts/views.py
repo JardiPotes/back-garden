@@ -116,7 +116,7 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
     msg = EmailMultiAlternatives(
         # title:
         "Password Reset for {title}".format(
-            title="Rénititier le code secret pour JardiPotes"),
+            title="Réinitialiser le code secret pour JardiPotes"),
         # message:
         email_plaintext_message,
         # from:
