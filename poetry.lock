@@ -109,6 +109,14 @@ confusable-homoglyphs = ">=3.0,<4.0"
 Django = ">=3.2"
 
 [[package]]
+name = "django-rest-passwordreset"
+version = "1.3.0"
+description = "An extension of django rest framework, providing a configurable password reset strategy"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "djangorestframework"
 version = "3.14.0"
 description = "Web APIs for Django, made easy."
@@ -294,7 +302,7 @@ python-versions = ">=2"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ad173a787a442645e7372e9606115008a660ef74ab89e38fdc520442053a3b48"
+content-hash = "8b3d0eba46504878df1e91e1612758e69a7d7bfc8464ad235831a44034ceda7c"
 
 [metadata.files]
 asgiref = [
@@ -346,6 +354,10 @@ django-environ = [
 django-registration = [
     {file = "django-registration-3.3.tar.gz", hash = "sha256:884a4cc9ec87b9f1c0ceb6b6c4b7ba491c1877997a3cd29cc923697dac785eb8"},
     {file = "django_registration-3.3-py3-none-any.whl", hash = "sha256:dfa176f594fb465c93495caa55686be723a15829769511383e25172d2efbd0e6"},
+]
+django-rest-passwordreset = [
+    {file = "django-rest-passwordreset-1.3.0.tar.gz", hash = "sha256:0d76eb8d0be9636f4404fd35e8a0842c968effeac1d141c55a45aef1ebce54c7"},
+    {file = "django_rest_passwordreset-1.3.0-py3-none-any.whl", hash = "sha256:f888fcb589c46e2f86f9686751de4cc1350c519aa3b120b993b1d675fd96fad6"},
 ]
 djangorestframework = [
     {file = "djangorestframework-3.14.0-py3-none-any.whl", hash = "sha256:eb63f58c9f218e1a7d064d17a70751f528ed4e1d35547fdade9aaf4cd103fd08"},
