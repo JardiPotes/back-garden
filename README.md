@@ -17,7 +17,7 @@ Once you've cloned this repository and are ready to get your feet wet, you need 
 
 - Activate the dev environment: `poetry shell`
 - Install all dependencies: `poetry install`
-- Launch the database: `docker-compose up -d`
+- In a new terminal, launch the database: `docker-compose up -d`
 
 #### Interacting with database
 
