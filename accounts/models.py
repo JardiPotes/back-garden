@@ -31,7 +31,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    pass
     username = None
     email = models.EmailField(verbose_name='email address', unique=True)
     profile_image = models.URLField(null=True)
@@ -41,6 +40,19 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def __str__(self):
+        return self.email
 
-def __str__(self):
-    return self.email
+
+class Garden(models.Model):
+    userId = models.ForeignKey(
+        User, on_delete=models.CASCADE)  # on cascade delete
+    description = models.TextField(blank=True, null=True)
+    title = models.CharField(max_length=100)
+    address = models.TextField()  # todo address
+    # todo specific Geo models ? https://pypi.org/project/django-address/
+    zipcode = models.CharField(max_length=5, validators=[])
+    #mainPhoto = models.ForeignKey(Photo)
+
+    def __str__(self):
+        return self.title
