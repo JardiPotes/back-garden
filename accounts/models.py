@@ -46,15 +46,12 @@ class User(AbstractUser):
 
 class Garden(models.Model):
     userId = models.ForeignKey(
-        User, on_delete=models.CASCADE)  # on cascade delete
+        User, on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=100)
     address = models.TextField()  # todo address
     # todo specific Geo models ? https://pypi.org/project/django-address/
-    zipcode = models.CharField(max_length=5, validators=[])
-    #choose a default main photo 
-    mainPhoto = models.ForeignKey(Photo, default="",
-                                  on_delete=models.SET_DEFAULT)
+    zipcode = models.CharField(max_length=5)  #TODO: check best practices
 
     def __str__(self):
         return self.title
@@ -63,4 +60,5 @@ class Garden(models.Model):
 class Photo(models.Model):
     gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
     photoUrl = models.URLField(max_length=300)
+    isMainPhoto = models.BooleanField()
     season = models.IntegerField()
