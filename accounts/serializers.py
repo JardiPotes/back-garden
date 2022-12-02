@@ -27,4 +27,4 @@ class GardenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Garden
         fields = ('userId', 'title', 'description',
-                  'address', 'zipcode')  # + mainPhoto
+                  'address', 'zipcode', 'mainPhoto')

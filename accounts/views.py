@@ -191,3 +191,44 @@ def user_logout(request):
     request.user.auth_token.delete()
 
     return Response('User Logged out successfully')
+
+
+""" Garden methods """
+
+""" Get all gardens """
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_gardens(request):
+    gardens = Garden.objects.all()
+    serializer = GardenSerializer(gardens, many=True)
+    return Response(serializer.data)
+
+
+""" Get one garden """
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_garden_detail(request, pk):
+    garden = Garden.objects.get(id=pk)
+    serializer = GardenSerializer(garden, many=False)
+    return Response(serializer.data)
+
+
+""" Create one garden """
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_garden(request):
+
+    serializer = GardenSerializer(data=request.data)
+    if serializer.is_valid():
+        account = serializer.save()
+        account.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

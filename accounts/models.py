@@ -52,7 +52,15 @@ class Garden(models.Model):
     address = models.TextField()  # todo address
     # todo specific Geo models ? https://pypi.org/project/django-address/
     zipcode = models.CharField(max_length=5, validators=[])
-    #mainPhoto = models.ForeignKey(Photo)
+    #choose a default main photo 
+    mainPhoto = models.ForeignKey(Photo, default="",
+                                  on_delete=models.SET_DEFAULT)
 
     def __str__(self):
         return self.title
+
+
+class Photo(models.Model):
+    gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
+    photoUrl = models.URLField(max_length=300)
+    season = models.IntegerField()
