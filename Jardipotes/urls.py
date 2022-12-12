@@ -12,8 +12,5 @@ POST ${API_URL}/validate_token/ - will return a 200 if a given token is valid
 
 urlpatterns = [
     re_path('admin/', admin.site.urls),
-    re_path('api/users/', include('accounts.urls')),
-
-
-
+    re_path('api/', include('accounts.urls')),
 ]

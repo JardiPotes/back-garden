@@ -31,16 +31,38 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    pass
     username = None
     email = models.EmailField(verbose_name='email address', unique=True)
     profile_image = models.URLField(null=True)
     bio = models.TextField(blank=True, null=True)
     has_garden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=now)
+    updated_at = models.DateTimeField(default=now)
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def __str__(self):
+        return self.email
 
-def __str__(self):
-    return self.email
+
+class Garden(models.Model):
+    userId = models.ForeignKey(
+        User, on_delete=models.CASCADE)
+    description = models.TextField(blank=True, null=True)
+    title = models.CharField(max_length=100)
+    address = models.TextField()  # todo address
+    # todo specific Geo models ? https://pypi.org/project/django-address/
+    zipcode = models.CharField(max_length=5)  # TODO: check best practices
+    created_at = models.DateTimeField(default=now)
+    updated_at = models.DateTimeField(default=now)
+
+    def __str__(self):
+        return self.title
+
+
+class Photo(models.Model):
+    gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
+    photoUrl = models.URLField(max_length=300)
+    isMainPhoto = models.BooleanField()
+    season = models.IntegerField()

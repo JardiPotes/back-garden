@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import User
+from .models import Photo, User, Garden
 
 """ Deals with user creation
 
@@ -21,3 +21,10 @@ class UserSerializer(serializers.ModelSerializer):
         User = get_user_model()
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class GardenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Garden
+        fields = ('id', 'userId', 'title', 'description',
+                  'address', 'zipcode')

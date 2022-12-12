@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.hashers import check_password
-from .models import User
-from .serializers import UserSerializer
+from .models import User, Garden
+from .serializers import UserSerializer, GardenSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -191,3 +191,71 @@ def user_logout(request):
     request.user.auth_token.delete()
 
     return Response('User Logged out successfully')
+
+
+""" Garden methods """
+
+""" Get 10 last gardens """
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_gardens(request):
+    gardens = Garden.objects.all().order_by('created_at')[:10][::-1]
+    serializer = GardenSerializer(gardens, many=True)
+
+    return Response(serializer.data)
+
+
+""" Get one garden """
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_garden_detail(request, pk):
+    garden = Garden.objects.get(id=pk)
+    serializer = GardenSerializer(garden, many=False)
+    return Response(serializer.data)
+
+
+""" Create one garden """
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_garden(request):
+
+    serializer = GardenSerializer(data=request.data)
+    if serializer.is_valid():
+        garden = serializer.save()
+        garden.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+""" Delete one garden """
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_garden(request, pk):
+    garden = Garden.objects.get(id=pk)
+    garden.delete()
+
+    return Response('Deleted')
+
+
+""" Update one garden """
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_garden(request, pk):
+    garden = Garden.objects.get(id=pk)
+    serializer = GardenSerializer(instance=garden, data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+    return Response(serializer.data)
