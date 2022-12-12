@@ -1,3 +1,4 @@
+from accounts.factories.user import UserFactory
 from .models import User
 from rest_framework.test import APITestCase
 from django.urls import reverse
@@ -14,8 +15,7 @@ class CreateUserTests(APITestCase):
     def test_create_user(self):
 
         url = reverse('register')
-        data = {"email": "helloworld@test.test", "first_name": "plante", "last_name": "ton voisin", "password": "SDZ1z3@Df", "has_garden": False,
-                "bio": "lorem", "profile_image": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"}
+        data = UserFactory.create_user(email='helloworld@test.test')
 
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
