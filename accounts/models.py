@@ -36,6 +36,8 @@ class User(AbstractUser):
     profile_image = models.URLField(null=True)
     bio = models.TextField(blank=True, null=True)
     has_garden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=now)
+    updated_at = models.DateTimeField(default=now)
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -51,7 +53,9 @@ class Garden(models.Model):
     title = models.CharField(max_length=100)
     address = models.TextField()  # todo address
     # todo specific Geo models ? https://pypi.org/project/django-address/
-    zipcode = models.CharField(max_length=5)  #TODO: check best practices
+    zipcode = models.CharField(max_length=5)  # TODO: check best practices
+    created_at = models.DateTimeField(default=now)
+    updated_at = models.DateTimeField(default=now)
 
     def __str__(self):
         return self.title

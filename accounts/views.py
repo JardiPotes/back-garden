@@ -195,13 +195,13 @@ def user_logout(request):
 
 """ Garden methods """
 
-""" Get all gardens """
+""" Get 10 last gardens """
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_gardens(request):
-    gardens = Garden.objects.all().order_by('-id')[:10][::-1]
+    gardens = Garden.objects.all().order_by('created_at')[:10][::-1]
     serializer = GardenSerializer(gardens, many=True)
 
     return Response(serializer.data)
