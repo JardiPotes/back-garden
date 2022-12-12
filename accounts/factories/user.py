@@ -1,5 +1,3 @@
-from django.core import serializers
-from accounts.models import User
 import uuid
 
 

@@ -2,8 +2,6 @@ from accounts.factories.user import UserFactory
 from .models import User
 from rest_framework.test import APITestCase
 from django.urls import reverse
-from .serializers import UserSerializer
-from .views import create_user, user_login
 from rest_framework import status
 
 """
