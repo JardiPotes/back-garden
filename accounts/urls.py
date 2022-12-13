@@ -1,6 +1,7 @@
-from django.urls import path, include
-from . import views
+from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
+
+from . import views
 
 """TODO Write a url pattern for basic CRUD instead of hard coding them
     """

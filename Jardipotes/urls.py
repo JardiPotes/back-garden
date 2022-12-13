@@ -1,6 +1,5 @@
 from django.contrib import admin
-from django.urls import re_path, include
-
+from django.urls import include, re_path
 
 """
 POST ${API_URL}/ - request a reset password token by using the email parameter

@@ -1,19 +1,21 @@
-from django.core.exceptions import ValidationError
+import json
+
 from django.contrib.auth import login
 from django.contrib.auth.hashers import check_password
-from .models import User, Garden
-from .serializers import UserSerializer, GardenSerializer
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework import status
-from rest_framework.authtoken.models import Token
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django_rest_passwordreset.signals import reset_password_token_created
-import json
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+
+from .models import Garden, User
+from .serializers import GardenSerializer, UserSerializer
 
 """Create a user
 

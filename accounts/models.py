@@ -1,6 +1,6 @@
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.timezone import now
-from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 """The User Model is an extension of the default one from Django. Username is set as email
     """
