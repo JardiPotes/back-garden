@@ -13,10 +13,10 @@ TODO: implement factory w / fake data to run more tests
 class CreateUserTests(APITestCase):
     def test_create_user(self):
 
-        url = reverse('register')
-        data = UserFactory.create_user(email='helloworld@test.test')
+        url = reverse("register")
+        data = UserFactory.create_user(email="helloworld@test.test")
 
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get().email, 'helloworld@test.test')
