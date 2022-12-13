@@ -35,3 +35,8 @@ This includes token implementation as well.
 #### How to launch the server?
 
 `python manage.py runserver`
+
+#### How to use pre-commit
+Pre-commit checks run automatically. You may need to run `pre-commit` install the first time.
+
+You can run all the checks manually by running `pre-commit run --all-files` in the terminal.
