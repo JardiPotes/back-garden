@@ -1,19 +1,21 @@
-from django.core.exceptions import ValidationError
-from django.contrib.auth import authenticate, login
+import json
+
+from django.contrib.auth import login
 from django.contrib.auth.hashers import check_password
-from .models import User, Garden
-from .serializers import UserSerializer, GardenSerializer
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework import status
-from rest_framework.authtoken.models import Token
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django_rest_passwordreset.signals import reset_password_token_created
-import json
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+
+from .models import Garden, User
+from .serializers import GardenSerializer, UserSerializer
 
 """Create a user
 
@@ -25,7 +27,7 @@ import json
     """
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def create_user(request):
 
@@ -34,7 +36,6 @@ def create_user(request):
         account = serializer.save()
         account.is_active = True
         account.save()
-        token = Token.objects.get_or_create(user=account)[0].key
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
@@ -46,7 +47,7 @@ def create_user(request):
     """
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_users(request):
     users = User.objects.all()
@@ -54,7 +55,7 @@ def list_users(request):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_detail(request, pk):
     user = User.objects.get(id=pk)
@@ -67,7 +68,7 @@ def get_user_detail(request, pk):
 """
 
 
-@api_view(['PATCH'])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_user(request, pk):
     user = User.objects.get(id=pk)
@@ -81,10 +82,12 @@ def update_user(request, pk):
 """ password reset method """
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 @receiver(reset_password_token_created)
-def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+def password_reset_token_created(
+    sender, instance, reset_password_token, *args, **kwargs
+):
     """
     Handles password reset tokens
     When a token is created, an e-mail needs to be sent to the user
@@ -98,61 +101,62 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
     # send an e-mail to the user
     # reset password confirmation url looks like this: host/api/users/password_reset/?token=TOKEN
     context = {
-        'current_user': reset_password_token.user,
-        'first_name': reset_password_token.user.first_name,
-        'email': reset_password_token.user.email,
-        'reset_password_url': "{}?token={}".format(
+        "current_user": reset_password_token.user,
+        "first_name": reset_password_token.user.first_name,
+        "email": reset_password_token.user.email,
+        "reset_password_url": "{}?token={}".format(
             instance.request.build_absolute_uri(
-                reverse('password_reset:reset-password-confirm')),
-            reset_password_token.key)
+                reverse("password_reset:reset-password-confirm")
+            ),
+            reset_password_token.key,
+        ),
     }
 
     # render email text
-    email_html_message = render_to_string(
-        'user_reset_password.html', context)
-    email_plaintext_message = render_to_string(
-        'user_reset_password.txt', context)
+    email_html_message = render_to_string("user_reset_password.html", context)
+    email_plaintext_message = render_to_string("user_reset_password.txt", context)
 
     msg = EmailMultiAlternatives(
         # title:
         "Password Reset for {title}".format(
-            title="Réinitialiser le code secret pour JardiPotes"),
+            title="Réinitialiser le code secret pour JardiPotes"
+        ),
         # message:
         email_plaintext_message,
         # from:
         "sadefryt@gmail.com",
         # to:
-        [reset_password_token.user.email]
+        [reset_password_token.user.email],
     )
     msg.attach_alternative(email_html_message, "text/html")
     msg.send()
 
 
-@api_view(['DELETE'])
+@api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_user(request, pk):
     user = User.objects.get(id=pk)
     user.delete()
 
-    return Response('Deleted')
+    return Response("Deleted")
 
 
 """
- User login with a token. For now, there's no expiration set. 
+ User login with a token. For now, there's no expiration set.
 """
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def user_login(request):
     data = {}
     reqBody = json.loads(request.body)
-    email = reqBody['email']
-    password = reqBody['password']
+    email = reqBody["email"]
+    password = reqBody["password"]
     try:
         account = User.objects.get(email=email)
     except BaseException as err:
-        raise ValidationError({"400": f'{str(err)}'})
+        raise ValidationError({"400": f"{str(err)}"})
 
     token = Token.objects.get_or_create(user=account)[0].key
     if not check_password(password, account.password):
@@ -169,10 +173,10 @@ def user_login(request):
             return Response(res)
 
         else:
-            raise ValidationError({"400": f'Account not active'})
+            raise ValidationError({"400": "Account not active"})
 
     else:
-        raise ValidationError({"400": f'Account doesnt exist'})
+        raise ValidationError({"400": "Account doesnt exist"})
 
 
 """
@@ -184,13 +188,13 @@ Authorization                Token xxxxxxxxxxxx
 """
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
 
     request.user.auth_token.delete()
 
-    return Response('User Logged out successfully')
+    return Response("User Logged out successfully")
 
 
 """ Garden methods """
@@ -198,10 +202,10 @@ def user_logout(request):
 """ Get 10 last gardens """
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def list_gardens(request):
-    gardens = Garden.objects.all().order_by('created_at')[:10][::-1]
+    gardens = Garden.objects.all().order_by("created_at")[:10][::-1]
     serializer = GardenSerializer(gardens, many=True)
 
     return Response(serializer.data)
@@ -210,7 +214,7 @@ def list_gardens(request):
 """ Get one garden """
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def get_garden_detail(request, pk):
     garden = Garden.objects.get(id=pk)
@@ -221,7 +225,7 @@ def get_garden_detail(request, pk):
 """ Create one garden """
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def create_garden(request):
 
@@ -238,19 +242,19 @@ def create_garden(request):
 """ Delete one garden """
 
 
-@api_view(['DELETE'])
+@api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_garden(request, pk):
     garden = Garden.objects.get(id=pk)
     garden.delete()
 
-    return Response('Deleted')
+    return Response("Deleted")
 
 
 """ Update one garden """
 
 
-@api_view(['PATCH'])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_garden(request, pk):
     garden = Garden.objects.get(id=pk)
