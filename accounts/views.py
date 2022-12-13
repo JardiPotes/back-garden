@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login
 from django.contrib.auth.hashers import check_password
 from .models import User, Garden
 from .serializers import UserSerializer, GardenSerializer
@@ -34,7 +34,6 @@ def create_user(request):
         account = serializer.save()
         account.is_active = True
         account.save()
-        token = Token.objects.get_or_create(user=account)[0].key
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
@@ -138,7 +137,7 @@ def delete_user(request, pk):
 
 
 """
- User login with a token. For now, there's no expiration set. 
+ User login with a token. For now, there's no expiration set.
 """
 
 
@@ -169,10 +168,10 @@ def user_login(request):
             return Response(res)
 
         else:
-            raise ValidationError({"400": f'Account not active'})
+            raise ValidationError({"400": f'Account for {email} is not active'})
 
     else:
-        raise ValidationError({"400": f'Account doesnt exist'})
+        raise ValidationError({"400": f"Account for {email} doesn't exist"})
 
 
 """
