@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     username = None
-    email = models.EmailField(verbose_name='email address', unique=True)
+    email = models.EmailField(verbose_name="email address", unique=True)
     nickname = models.CharField(max_length=100, null=True)
     profile_image = models.URLField(null=True)
     bio = models.TextField(blank=True, null=True)

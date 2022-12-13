@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0003_garden_created_at_garden_updated_at_user_created_at_and_more'),
+        (
+            "accounts",
+            "0003_garden_created_at_garden_updated_at_user_created_at_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='nickname',
+            model_name="user",
+            name="nickname",
             field=models.CharField(max_length=100, null=True),
         ),
     ]
