@@ -16,7 +16,7 @@ class CreateUserTests(APITestCase):
     def test_create_user(self):
 
         url = reverse("register")
-        data = UserFactory.create_user(email="helloworld@test.test")
+        data = UserFactory.create_user_dict(email="helloworld@test.test")
 
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -28,10 +28,8 @@ class CreateGardenTests(APITestCase):
     def test_create_garden(self):
 
         url = reverse("create_garden")
-        factoryUser = UserFactory.create_user()
-        user = User.objects.create(**factoryUser)
-        print(user)
-        data = GardenFactory.create_garden(userId=user.id, title="au vert")
+        user = UserFactory.create_user()
+        data = GardenFactory.create_garden_dict(userId=user.id, title="au vert")
 
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
