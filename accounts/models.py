@@ -67,6 +67,8 @@ class Photo(models.Model):
         (3, "Hiver"),
     )
     gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
-    photoUrl = models.URLField(max_length=300)
-    isMainPhoto = models.BooleanField(default=False)
+    photoUrl = models.URLField(max_length=300)  # TODO: ImageField > handle file upload
+    isMainPhoto = models.BooleanField(
+        default=False
+    )  # TODO: add constraint -> only one mainPhoto
     season = models.PositiveSmallIntegerField(choices=SEASONS, null=True)
