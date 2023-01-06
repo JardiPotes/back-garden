@@ -69,4 +69,4 @@ class Photo(models.Model):
     gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
     photoUrl = models.URLField(max_length=300)
     isMainPhoto = models.BooleanField(default=False)
-    season = models.PositiveSmallIntegerField(max_value=3, choices=SEASONS, null=True)
+    season = models.PositiveSmallIntegerField(choices=SEASONS, null=True)
