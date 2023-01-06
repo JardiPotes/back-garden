@@ -60,7 +60,13 @@ class Garden(models.Model):
 
 
 class Photo(models.Model):
+    SEASONS = (
+        (0, "Printemps"),
+        (1, "Été"),
+        (2, "Automne"),
+        (3, "Hiver"),
+    )
     gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
     photoUrl = models.URLField(max_length=300)
-    isMainPhoto = models.BooleanField()
-    season = models.IntegerField()
+    isMainPhoto = models.BooleanField(default=False)
+    season = models.PositiveSmallIntegerField(max_value=3, choices=SEASONS, null=True)
