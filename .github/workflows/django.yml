@@ -45,7 +45,7 @@ jobs:
 
       - name: Launch DB
         run: |
-          cp .env.example .env
+          cp .env.ci .env
           docker-compose up -d db
       - name: Run Tests
         run: |
