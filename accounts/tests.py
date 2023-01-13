@@ -1,4 +1,4 @@
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -27,7 +27,7 @@ class CreateUserTests(APITestCase):
 class CreateGardenTests(APITestCase):
     def test_create_garden(self):
 
-        url = reverse("create_garden")
+        url = reverse_lazy("gardens-list")
         user = UserFactory.create_user()
         data = GardenFactory.create_garden_dict(userId=user.id, title="au vert")
 

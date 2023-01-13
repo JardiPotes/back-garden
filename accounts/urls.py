@@ -20,11 +20,5 @@ urlpatterns = [
     path(
         "password_reset/",
         include("django_rest_passwordreset.urls", namespace="password_reset"),
-    ),
-    # gardens
-    # path('gardens/', include(router.urls)),
-    # path('garden/<str:pk>/', views.get_garden_detail),
-    # path('create_garden/', views.create_garden, name="create_garden"),
-    # path('update_garden/<str:pk>/', views.update_garden, name="update_garden"),
-    # path('delete_garden/<str:pk>/', views.delete_garden, name="delete_garden")
+    )
 ]

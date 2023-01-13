@@ -219,77 +219,13 @@ class GardenViewset(ModelViewSet):
 
     def get_queryset(self):
         queryset = Garden.objects.all()
+        data = self.request.data
 
-        userId = self.request.GET.get('user_id')
         mostRecent = self.request.GET.get('recent')
-        if userId is not None:
-            queryset = queryset.filter(userId=userId)
+        if 'userId' in data:
+            queryset = queryset.filter(userId_id=data["userId"])
+        if 'zipcode' in data:
+            queryset = queryset.filter(zipcode=data["zipcode"])
         if mostRecent is not None:
             queryset = queryset.order_by('created_at')[:10][::-1]
         return queryset
-
-
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# def list_all_gardens(request):
-#     gardens = Garden.objects.all().order_by('created_at')
-#     serializer = GardenSerializer(gardens, many=True)
-
-#     return Response(serializer.data)
-
-
-""" Get 10 last gardens """
-
-
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# def list_gardens(request):
-#     gardens = Garden.objects.all().order_by('created_at')[:10][::-1]
-#     serializer = GardenSerializer(gardens, many=True)
-#     return Response(serializer.data)
-
-
-""" Get one garden """
-
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# def get_garden_detail(request, pk):
-#     garden = Garden.objects.get(id=pk)
-#     serializer = GardenSerializer(garden, many=False)
-#     return Response(serializer.data)
-
-""" Create one garden """
-
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def create_garden(request):
-#     serializer = GardenSerializer(data=request.data)
-#     if serializer.is_valid():
-#         garden = serializer.save()
-#         garden.save()
-
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     else:
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-""" Delete one garden """
-
-# @api_view(['DELETE'])
-# @permission_classes([IsAuthenticated])
-# def delete_garden(request, pk):
-#     garden = Garden.objects.get(id=pk)
-#     garden.delete()
-
-#     return Response('Deleted')
-
-""" Update one garden """
-
-# @api_view(['PATCH'])
-# @permission_classes([IsAuthenticated])
-# def update_garden(request, pk):
-#     garden = Garden.objects.get(id=pk)
-#     serializer = GardenSerializer(instance=garden, data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#     return Response(serializer.data)
