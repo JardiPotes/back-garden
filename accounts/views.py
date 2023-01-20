@@ -3,6 +3,14 @@ import json
 from django.contrib.auth import login
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
+from .models import User, Garden
+from .serializers import UserSerializer, GardenSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from django.core.mail import EmailMultiAlternatives
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -16,6 +24,7 @@ from rest_framework.response import Response
 
 from .models import Garden, User
 from .serializers import GardenSerializer, UserSerializer
+
 
 """Create a user
 
@@ -199,67 +208,24 @@ def user_logout(request):
 
 """ Garden methods """
 
-""" Get 10 last gardens """
+""" GardenViewset includes GET/POST/PUT/DELETE methods with or without params """
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def list_gardens(request):
-    gardens = Garden.objects.all().order_by("created_at")[:10][::-1]
-    serializer = GardenSerializer(gardens, many=True)
+class GardenViewset(ModelViewSet):
 
-    return Response(serializer.data)
+    serializer_class = GardenSerializer
+    # change to isAuthenticated when needed
+    permission_classes = [AllowAny]
 
+    def get_queryset(self):
+        queryset = Garden.objects.all()
+        data = self.request.data
 
-""" Get one garden """
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def get_garden_detail(request, pk):
-    garden = Garden.objects.get(id=pk)
-    serializer = GardenSerializer(garden, many=False)
-    return Response(serializer.data)
-
-
-""" Create one garden """
-
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def create_garden(request):
-
-    serializer = GardenSerializer(data=request.data)
-    if serializer.is_valid():
-        garden = serializer.save()
-        garden.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-""" Delete one garden """
-
-
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def delete_garden(request, pk):
-    garden = Garden.objects.get(id=pk)
-    garden.delete()
-
-    return Response("Deleted")
-
-
-""" Update one garden """
-
-
-@api_view(["PATCH"])
-@permission_classes([IsAuthenticated])
-def update_garden(request, pk):
-    garden = Garden.objects.get(id=pk)
-    serializer = GardenSerializer(instance=garden, data=request.data)
-
-    if serializer.is_valid():
-        serializer.save()
-    return Response(serializer.data)
+        mostRecent = self.request.GET.get('recent')
+        if 'userId' in data:
+            queryset = queryset.filter(userId_id=data["userId"])
+        if 'zipcode' in data:
+            queryset = queryset.filter(zipcode=data["zipcode"])
+        if mostRecent is not None:
+            queryset = queryset.order_by('created_at')[:10][::-1]
+        return queryset
