@@ -30,7 +30,7 @@ SECRET_KEY = "django-insecure-eir5h@b#%ckix#27i910x#5hh#ueg#qry&$5=^v-9$5f-i*%!2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["188.165.238.74", "127.0.0.1"]
+ALLOWED_HOSTS = ["188.165.238.74", "127.0.0.1", "localhost"]
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ["http://localhost:5173", "http://127.0.0.1:5173"]
@@ -39,13 +39,13 @@ CORS_ORIGIN_WHITELIST = ["http://localhost:5173", "http://127.0.0.1:5173"]
 # Application definition
 
 INSTALLED_APPS = [
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "corsheaders",
     "accounts",
     "rest_framework",
     "rest_framework.authtoken",
