@@ -11,7 +11,7 @@ In order to retrieve all necessary dependencies, you need to:
 - Install poetry: https://python-poetry.org/docs/#installation
 - Create your `.env` file with POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD
 
-## How to run the prorject?
+## How to run the project?
 
 Once you've cloned this repository and are ready to get your feet wet, you need to follow these steps to be able to run the app correctly.
 
