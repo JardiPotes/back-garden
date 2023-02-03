@@ -46,7 +46,7 @@ class User(AbstractUser):
 
 
 class Garden(models.Model):
-    userId = models.ForeignKey(User, on_delete=models.CASCADE)
+    userId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gardens")
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=100)
     address = models.TextField()  # todo address
