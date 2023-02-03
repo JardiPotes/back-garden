@@ -223,14 +223,14 @@ class GardenViewset(ModelViewSet):
         data = self.request.data
 
         mostRecent = self.request.GET.get('recent')
-        if 'userId' in data:
-            queryset = queryset.filter(userId_id=data["userId"])
+        if 'user_id' in data:
+            queryset = queryset.filter(user_id=data["user_id"])
         if 'zipcode' in data:
             queryset = queryset.filter(zipcode=data["zipcode"])
         if mostRecent is not None:
             queryset = queryset.order_by('created_at')[:10][::-1]
         return queryset
-
+        
 
 class PhotoViewset(ModelViewSet):
     serializer_class = PhotoSerializer

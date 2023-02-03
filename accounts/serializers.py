@@ -7,7 +7,7 @@ from .models import Garden, Photo
 class GardenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Garden
-        fields = ("id", "userId", "title", "description", "address", "zipcode")
+        fields = ("id", "user_id", "title", "description", "address", "zipcode")
 
 
 """ Deals with user creation
@@ -18,9 +18,7 @@ class GardenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-
-    gardens = GardenSerializer(many=True)
-
+ 
     class Meta:
         User = get_user_model()
         model = User
@@ -35,9 +33,13 @@ class UserSerializer(serializers.ModelSerializer):
             "profile_image",
             "bio",
             "has_garden",
-            "gardens",
+            'gardens'
         )
+
         extra_kwargs = {"password": {"write_only": True, "required": False}}
+    
+    gardens = GardenSerializer(many=True, required=False)  
+    
 
     def create(self, validated_data):
         User = get_user_model()
@@ -49,4 +51,4 @@ class PhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Photo
-        fields = ("gardenId", "slug", "image", "isMainPhoto", "season")
+        fields = ("garden_id", "slug", "image", "isMainPhoto", "season")

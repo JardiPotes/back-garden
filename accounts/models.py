@@ -46,7 +46,7 @@ class User(AbstractUser):
 
 
 class Garden(models.Model):
-    userId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gardens")
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gardens")
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=100)
     address = models.TextField()  # todo address
@@ -60,7 +60,7 @@ class Garden(models.Model):
 
 
 class Photo(models.Model):
-    gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
+    garden_id = models.ForeignKey(Garden, on_delete=models.CASCADE)
     slug = models.SlugField(verbose_name=str, default='')
     image = models.ImageField(default='', upload_to='accounts/images')
     isMainPhoto = models.BooleanField()
