@@ -58,7 +58,7 @@ def create_user(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def list_users(request):
     users = User.objects.all()
     serializer = UserSerializer(users, many=True)
@@ -66,7 +66,7 @@ def list_users(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_user_detail(request, pk):
     user = User.objects.get(id=pk)
     serializer = UserSerializer(user, many=False)

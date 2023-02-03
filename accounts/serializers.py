@@ -3,6 +3,13 @@ from rest_framework import serializers
 
 from .models import Garden, Photo
 
+
+class GardenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Garden
+        fields = ("id", "userId", "title", "description", "address", "zipcode")
+
+
 """ Deals with user creation
 
     Returns:
@@ -11,6 +18,9 @@ from .models import Garden, Photo
 
 
 class UserSerializer(serializers.ModelSerializer):
+
+    gardens = GardenSerializer(many=True)
+
     class Meta:
         User = get_user_model()
         model = User
@@ -25,6 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
             "profile_image",
             "bio",
             "has_garden",
+            "gardens",
         )
         extra_kwargs = {"password": {"write_only": True, "required": False}}
 
@@ -32,12 +43,6 @@ class UserSerializer(serializers.ModelSerializer):
         User = get_user_model()
         user = User.objects.create_user(**validated_data)
         return user
-
-
-class GardenSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Garden
-        fields = ("id", "userId", "title", "description", "address", "zipcode")
 
 
 class PhotoSerializer(serializers.ModelSerializer):

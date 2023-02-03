@@ -10,7 +10,7 @@ from . import views
 urlpatterns = [
     # users
     path("users", views.list_users, name="users"),
-    path("profile/<str:pk>/", views.get_user_detail, name="profile"),
+    path("users/<str:pk>/", views.get_user_detail, name="users"),
     path("register", views.create_user, name="register"),
     path("login", views.user_login, name="login"),
     path("logout", views.user_logout, name="logout"),
