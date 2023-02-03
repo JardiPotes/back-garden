@@ -22,8 +22,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Garden, User
-from .serializers import GardenSerializer, UserSerializer
+from .models import Garden, User, Photo
+from .serializers import GardenSerializer, UserSerializer, PhotoSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 """Create a user
@@ -229,3 +230,14 @@ class GardenViewset(ModelViewSet):
         if mostRecent is not None:
             queryset = queryset.order_by('created_at')[:10][::-1]
         return queryset
+
+
+class PhotoViewset(ModelViewSet):
+    serializer_class = PhotoSerializer
+# change to IsAuthenticated
+    permission_classes = [AllowAny]
+    parser_classes = (MultiPartParser, FormParser)
+    queryset = Photo.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)

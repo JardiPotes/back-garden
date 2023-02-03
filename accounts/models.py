@@ -61,6 +61,7 @@ class Garden(models.Model):
 
 class Photo(models.Model):
     gardenId = models.ForeignKey(Garden, on_delete=models.CASCADE)
-    photoUrl = models.URLField(max_length=300)
+    slug = models.SlugField(verbose_name=str, default='')
+    image = models.ImageField(default='', upload_to='accounts/images')
     isMainPhoto = models.BooleanField()
     season = models.IntegerField()
