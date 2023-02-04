@@ -1,54 +1,65 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
+from rest_framework.authtoken.models import Token
 from rest_framework import serializers
+from django.contrib.auth.models import BaseUserManager
+from apis.serializers import GardenSerializer
 
-from .models import Garden, Photo
+User = get_user_model()
 
 
-class GardenSerializer(serializers.ModelSerializer):
+class UserLoginSerializer(serializers.Serializer):
+    email = serializers.CharField(max_length=300, required=True)
+    password = serializers.CharField(required=True, write_only=True)
+
+
+class AuthUserSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = Garden
-        fields = ("id", "user_id", "title", "description", "address", "zipcode")
-
-
-""" Deals with user creation
-
-    Returns:
-        user object with all fields
-    """
-
-
-class UserSerializer(serializers.ModelSerializer):
- 
-    class Meta:
-        User = get_user_model()
         model = User
-        fields = (
-            "id",
-            "username",
-            "password",
-            "nickname",
-            "email",
-            "first_name",
-            "last_name",
-            "profile_image",
-            "bio",
-            "has_garden",
-            'gardens'
-        )
+        fields = ('id', 'email', 'nickname', 'bio', 'has_garden', 'gardens', 'profile_image', 'auth_token', 'gardens')
+    gardens = GardenSerializer(many=True, required=False)
 
-        extra_kwargs = {"password": {"write_only": True, "required": False}}
-    
-    gardens = GardenSerializer(many=True, required=False)  
-    
-
-    def create(self, validated_data):
-        User = get_user_model()
-        user = User.objects.create_user(**validated_data)
-        return user
+    def get_auth_token(self, obj):
+        token = Token.objects.create(user=obj)
+        return token.key
 
 
-class PhotoSerializer(serializers.ModelSerializer):
+class EmptySerializer(serializers.Serializer):
+    pass
+
+
+class UserSerializer(serializers.Serializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'password', 'nickname', 'has_garden', 'bio', 'profile_image')
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Photo
-        fields = ("garden_id", "slug", "image", "isMainPhoto", "season")
+        model = User
+        fields = ('id', 'email', 'password', 'nickname', 'has_garden', 'bio', 'profile_image')
+
+    def validate_email(self, value):
+        user = User.objects.filter(email=value)
+        if user:
+            raise serializers.ValidationError("Email is already taken")
+        return BaseUserManager.normalize_email(value)
+
+    def validate_password(self, value):
+        password_validation.validate_password(value)
+        return value
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_current_password(self, value):
+        if not self.context['request'].user.check_password(value):
+            raise serializers.ValidationError('Current password does not match')
+        return value
+
+    def validate_new_password(self, value):
+        password_validation.validate_password(value)
+        return value

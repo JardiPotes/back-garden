@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "apis",
     "accounts",
     "rest_framework",
     "rest_framework.authtoken",
@@ -59,6 +60,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        'rest_framework.authentication.BasicAuthentication',
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -81,7 +83,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "Jardipotes.urls"
+ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
     {
@@ -99,7 +101,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "Jardipotes.wsgi.application"
+WSGI_APPLICATION = "core.wsgi.application"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Database

@@ -1,4 +1,4 @@
-from accounts.models import Garden
+from apis.models import Garden
 
 
 class GardenFactory:

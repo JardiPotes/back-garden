@@ -2,7 +2,7 @@ import uuid
 
 from django.utils import timezone
 
-from accounts.models import User
+from .models import User
 
 
 class UserFactory:

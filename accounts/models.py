@@ -2,9 +2,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.timezone import now
 
-"""The User Model is an extension of the default one from Django. Username is set as email
-    """
-
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
@@ -43,25 +40,3 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
-
-
-class Garden(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gardens")
-    description = models.TextField(blank=True, null=True)
-    title = models.CharField(max_length=100)
-    address = models.TextField()  # todo address
-    # todo specific Geo models ? https://pypi.org/project/django-address/
-    zipcode = models.CharField(max_length=5)  # TODO: check best practices
-    created_at = models.DateTimeField(default=now)
-    updated_at = models.DateTimeField(default=now)
-
-    def __str__(self):
-        return self.title
-
-
-class Photo(models.Model):
-    garden_id = models.ForeignKey(Garden, on_delete=models.CASCADE)
-    slug = models.SlugField(verbose_name=str, default='')
-    image = models.ImageField(default='', upload_to='accounts/images')
-    isMainPhoto = models.BooleanField()
-    season = models.IntegerField()
