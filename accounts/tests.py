@@ -16,9 +16,11 @@ class CreateUserTests(APITestCase):
     def test_create_user(self):
 
         url = reverse("register")
-        data = UserFactory.create_user_dict(email="helloworld@test.test")
-
+        data = UserFactory.create_user_dict(email="helloworld@test.test", has_garden=False)
+    
+ 
         response = self.client.post(url, data, format="json")
+        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get().email, "helloworld@test.test")
@@ -29,7 +31,7 @@ class CreateGardenTests(APITestCase):
 
         url = reverse_lazy("gardens-list")
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(userId=user.id, title="au vert")
+        data = GardenFactory.create_garden_dict(user_id=user.id, title="au vert")
 
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

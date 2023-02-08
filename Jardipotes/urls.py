@@ -23,5 +23,5 @@ POST ${API_URL}/validate_token/ - will return a 200 if a given token is valid
 urlpatterns = [
     path('api/', include(router.urls)),
     re_path('admin/', admin.site.urls),
-    re_path('/', include('accounts.urls')),
+    re_path('api/', include('accounts.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
