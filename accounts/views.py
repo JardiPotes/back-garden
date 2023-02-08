@@ -230,7 +230,6 @@ class GardenViewset(ModelViewSet):
         if mostRecent is not None:
             queryset = queryset.order_by('created_at')[:10][::-1]
         return queryset
-        
 
 class PhotoViewset(ModelViewSet):
     serializer_class = PhotoSerializer
