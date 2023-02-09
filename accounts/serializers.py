@@ -16,7 +16,7 @@ class AuthUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'nickname', 'bio', 'has_garden', 'gardens', 'profile_image', 'auth_token', 'gardens')
+        fields = ('id', 'email', 'nickname', 'bio', 'has_garden', 'gardens', 'profile_image', 'auth_token', 'gardens', 'experience')
     gardens = GardenSerializer(many=True, required=False)
 
     def get_auth_token(self, obj):
@@ -38,7 +38,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'password', 'nickname', 'has_garden', 'bio', 'profile_image')
+        fields = ('id', 'email', 'password', 'nickname', 'has_garden', 'bio', 'profile_image', 'experience')
 
     def validate_email(self, value):
         user = User.objects.filter(email=value)

@@ -19,6 +19,34 @@ class TestRegisterUser(APITestCase):
         self.assertEqual(User.objects.count(), 2)
         self.assertEqual(User.objects.filter(email="hellothere@test.test").exists(), True)
 
+    def test_should_accept_experience_from_one_to_five_on_creation(self):
+        data = UserFactory.create_user_dict(experience=5)
+        response = self.client.post('/api/auth/register', data, format='json')
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(json_response["experience"], 5)
+
+    def test_cannot_create_account_with_experience_greater_than_five(self):
+        data = UserFactory.create_user_dict(experience=10)
+        response = self.client.post('/api/auth/register', data, format='json')
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(json_response["experience"], ['The range of experiences should be at a scale of 1 to 5'])
+
+    def test_cannot_create_account_with_experience_less_than_one(self):
+        data = UserFactory.create_user_dict(experience=0)
+        response = self.client.post('/api/auth/register', data, format='json')
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(json_response["experience"], ['The range of experiences should be at a scale of 1 to 5'])
+
+    def test_cannot_create_account_with_experience_set_as_decimal(self):
+        data = UserFactory.create_user_dict(experience=1.3)
+        response = self.client.post('/api/auth/register', data, format='json')
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(json_response["experience"], ['A valid integer is required.'])
+
     def test_cannot_create_account_with_invalid_email(self):
         data = UserFactory.create_user_dict(email="lol.l")
         response = self.client.post('/api/auth/register', data, format='json')
