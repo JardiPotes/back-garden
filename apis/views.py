@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.parsers import MultiPartParser, FormParser
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from .models import Garden, Photo
 from .serializers import GardenSerializer, PhotoSerializer
 
@@ -27,16 +29,6 @@ class GardenViewset(ModelViewSet):
         if zipcode is not None:
             queryset = queryset.filter(zipcode=zipcode)
         return queryset
-# TODO check the pagination here
-        #   data = self.request.data
-        # mostRecent = self.request.GET.get('recent')
-        # if 'user_id' in data:
-        #     queryset = queryset.filter(user_id=data["user_id"])
-        # if 'zipcode' in data:
-        #     queryset = queryset.filter(zipcode=data["zipcode"])
-        # if mostRecent is not None:
-        #     queryset = queryset.order_by('created_at')[:10][::-1]
-        # return queryset
 
 
 class PhotoViewset(ModelViewSet):
