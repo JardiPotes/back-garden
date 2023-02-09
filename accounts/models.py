@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.timezone import now
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class UserManager(BaseUserManager):
@@ -33,7 +33,9 @@ class User(AbstractUser):
     profile_image = models.URLField(null=True)
     bio = models.TextField(blank=True, null=True)
     has_garden = models.BooleanField(default=False)
-    experience = models.IntegerField(default=1, null=False, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    experience = models.IntegerField(
+        default=1, null=False, validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
     created_at = models.DateTimeField(default=now)
     updated_at = models.DateTimeField(default=now)
     objects = UserManager()

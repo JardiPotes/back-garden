@@ -1,6 +1,7 @@
-from apis.models import Garden
-import string
 import random
+import string
+
+from apis.models import Garden
 
 
 class GardenFactory:
@@ -18,8 +19,7 @@ class GardenFactory:
 
 
 class TestHelper:
-
     def random_string_more_than_hundred_char(size):
         basic_str = string.ascii_letters
-        res = ''.join(random.choices(basic_str, k=size))
+        res = "".join(random.choices(basic_str, k=size))
         return res

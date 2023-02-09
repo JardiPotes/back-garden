@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model, password_validation
-from rest_framework.authtoken.models import Token
-from rest_framework import serializers
 from django.contrib.auth.models import BaseUserManager
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token
+
 from apis.serializers import GardenSerializer
 
 User = get_user_model()
@@ -13,10 +14,21 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
-        fields = ('id', 'email', 'nickname', 'bio', 'has_garden', 'gardens', 'profile_image', 'auth_token', 'gardens', 'experience')
+        fields = (
+            "id",
+            "email",
+            "nickname",
+            "bio",
+            "has_garden",
+            "gardens",
+            "profile_image",
+            "auth_token",
+            "gardens",
+            "experience",
+        )
+
     gardens = GardenSerializer(many=True, required=False)
 
     def get_auth_token(self, obj):
@@ -31,14 +43,30 @@ class EmptySerializer(serializers.Serializer):
 class UserSerializer(serializers.Serializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'password', 'nickname', 'has_garden', 'bio', 'profile_image')
+        fields = (
+            "id",
+            "email",
+            "password",
+            "nickname",
+            "has_garden",
+            "bio",
+            "profile_image",
+        )
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
-        fields = ('id', 'email', 'password', 'nickname', 'has_garden', 'bio', 'profile_image', 'experience')
+        fields = (
+            "id",
+            "email",
+            "password",
+            "nickname",
+            "has_garden",
+            "bio",
+            "profile_image",
+            "experience",
+        )
 
     def validate_email(self, value):
         user = User.objects.filter(email=value)
@@ -56,8 +84,8 @@ class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
     def validate_current_password(self, value):
-        if not self.context['request'].user.check_password(value):
-            raise serializers.ValidationError('Current password does not match')
+        if not self.context["request"].user.check_password(value):
+            raise serializers.ValidationError("Current password does not match")
         return value
 
     def validate_new_password(self, value):

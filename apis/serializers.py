@@ -11,7 +11,6 @@ class GardenSerializer(serializers.ModelSerializer):
 
 
 class PhotoSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Photo
         fields = ("garden_id", "slug", "image", "isMainPhoto", "season")

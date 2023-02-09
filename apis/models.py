@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.timezone import now
-from accounts.models import User
 
+from accounts.models import User
 
 user = User
 
@@ -22,7 +22,7 @@ class Garden(models.Model):
 
 class Photo(models.Model):
     garden_id = models.ForeignKey(Garden, on_delete=models.CASCADE)
-    slug = models.SlugField(verbose_name=str, default='')
-    image = models.ImageField(default='', upload_to='users/images')
+    slug = models.SlugField(verbose_name=str, default="")
+    image = models.ImageField(default="", upload_to="users/images")
     isMainPhoto = models.BooleanField()
     season = models.IntegerField()
