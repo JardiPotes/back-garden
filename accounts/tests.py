@@ -31,14 +31,14 @@ class TestRegisterUser(APITestCase):
         response = self.client.post('/api/auth/register', data, format='json')
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(json_response["experience"], ['The range of experiences should be at a scale of 1 to 5'])
+        self.assertEqual(json_response["experience"], ['Ensure this value is less than or equal to 5.'])
 
     def test_cannot_create_account_with_experience_less_than_one(self):
         data = UserFactory.create_user_dict(experience=0)
         response = self.client.post('/api/auth/register', data, format='json')
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(json_response["experience"], ['The range of experiences should be at a scale of 1 to 5'])
+        self.assertEqual(json_response["experience"], ['Ensure this value is greater than or equal to 1.'])
 
     def test_cannot_create_account_with_experience_set_as_decimal(self):
         data = UserFactory.create_user_dict(experience=1.3)
