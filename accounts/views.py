@@ -53,7 +53,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         )
         serializer.is_valid(raise_exception=True)
         user = get_and_authenticate_user(**serializer.validated_data)
-        data = serializers.AuthUserSerializer(user).data
+        data = serializers.UserLoginSerializer(user).data
         login(request, user)
         return Response(data=data, status=status.HTTP_200_OK)
 

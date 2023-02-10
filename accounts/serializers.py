@@ -10,35 +10,42 @@ from apis.serializers import GardenSerializer
 User = get_user_model()
 
 
+class AuthUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "nickname",
+            "bio",
+            "has_garden",
+            "profile_image",
+            "gardens",
+            "experience",
+        )
+
+    gardens = GardenSerializer(many=True, required=False)
+
+
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.CharField(max_length=300, required=True)
     password = serializers.CharField(
         required=True, write_only=True, trim_whitespace=False
     )
 
-
-class AuthUserSerializer(serializers.ModelSerializer):
-    class Meta:
+    class meta:
         model = User
-        fields = (
-            "id",
-            "email",
-            "nickname",
-            "bio",
-            "has_garden",
-            "gardens",
-            "profile_image",
-            "auth_token",
-            "gardens",
-            "experience",
-        )
+        fields = ("auth_token", "id")
 
-    gardens = GardenSerializer(many=True, required=False)
     auth_token = serializers.SerializerMethodField()
+    id = serializers.SerializerMethodField()
 
     def get_auth_token(self, obj):
         token = Token.objects.get_or_create(user=obj)
         return token[0].key
+
+    def get_id(self, obj):
+        id = User.objects.get(email=obj.email).id
+        return id
 
 
 class EmptySerializer(serializers.Serializer):
