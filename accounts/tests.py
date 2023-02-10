@@ -1,6 +1,7 @@
 import json
 
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import (APIClient, APIRequestFactory, APITestCase,
                                  RequestsClient, force_authenticate)
 
@@ -91,10 +92,17 @@ class TestRegisterUser(APITestCase):
 class TestUserLogin(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user("john@snow.com", "johnpassword")
+        self.token = Token.objects.create(user=self.user)
 
     def test_can_login_with_valid_email_password(self):
         data = {"email": "john@snow.com", "password": "johnpassword"}
-        response = self.client.post("/api/auth/login", data, format="json")
+        response = self.client.post(
+            "/api/auth/login",
+            data,
+            format="json",
+            HTTP_AUTHORIZATION="Token {}".format(self.token),
+        )
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_login_with_invalid_email_or_password(self):

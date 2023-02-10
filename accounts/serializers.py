@@ -1,5 +1,7 @@
-from django.contrib.auth import get_user_model, password_validation
+from django.contrib.auth import (authenticate, get_user_model,
+                                 password_validation)
 from django.contrib.auth.models import BaseUserManager
+from django.core.validators import ValidationError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
@@ -10,7 +12,9 @@ User = get_user_model()
 
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.CharField(max_length=300, required=True)
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(
+        required=True, write_only=True, trim_whitespace=False
+    )
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
@@ -30,10 +34,11 @@ class AuthUserSerializer(serializers.ModelSerializer):
         )
 
     gardens = GardenSerializer(many=True, required=False)
+    auth_token = serializers.SerializerMethodField()
 
     def get_auth_token(self, obj):
-        token = Token.objects.create(user=obj)
-        return token.key
+        token = Token.objects.get_or_create(user=obj)
+        return token[0].key
 
 
 class EmptySerializer(serializers.Serializer):

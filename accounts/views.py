@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model, logout
+from django.contrib.auth import get_user_model, login, logout
 from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import get_object_or_404, render
 from rest_framework import status, viewsets
@@ -48,10 +48,13 @@ class AuthViewSet(viewsets.GenericViewSet):
         detail=False,
     )
     def login(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(
+            data=request.data, context={"request": self.request}
+        )
         serializer.is_valid(raise_exception=True)
         user = get_and_authenticate_user(**serializer.validated_data)
         data = serializers.AuthUserSerializer(user).data
+        login(request, user)
         return Response(data=data, status=status.HTTP_200_OK)
 
     @action(
