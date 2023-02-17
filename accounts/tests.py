@@ -116,11 +116,10 @@ class TestUserLogin(APITestCase):
 class TestUserLogout(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user("john@snow.com", "johnpassword")
-        self.client.login(email="john@snow.com", password="johnpassword")
+        self.client.force_authenticate(self.user)
 
     def test_can_logout(self):
-        data = {"email": "john@snow.com", "password": "johnpassword"}
-        response = self.client.post("/api/auth/logout", data, format="json")
+        response = self.client.post("/api/auth/logout")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -162,3 +161,20 @@ class TestResetPassword(APITestCase):
             "/api/auth/password_change", data=data, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class TestUpdateUser(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            "hello@foo.bar", "foobar12345", bio="foobar"
+        )
+
+    def test_can_edit_user_profile_with_correct_user_id(self):
+        self.client.force_authenticate(user=self.user)
+
+        data = {"bio": "barfoo"}
+        response = self.client.put(f"/api/users/{self.user.id}", data, format="json")
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    # self.assertEqual(json_response["bio"], "barfoo")

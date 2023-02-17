@@ -5,7 +5,7 @@ description = "Share your garden, or theirs!"
 authors = ["Victoire, Quentin, Isciane, Constant"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "core"}]
+packages = [{ include = "core" }]
 
 [tool.poetry.dependencies]
 python = "^3.8.1"
