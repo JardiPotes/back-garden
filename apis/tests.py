@@ -115,5 +115,60 @@ class TestListGardens(APITestCase):
             zipcode_list.append(res["zipcode"])
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json_response["count"], 2)
-        self.assertNotIn("93100", zipcode_list)
+        self.assertEqual(json_response['count'], 2)
+        self.assertNotIn('93100', zipcode_list)
+
+class TestGetGardenDetails(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('hello@world', 'hello_world_123', has_garden=True)
+        self.garden = Garden.objects.create(user_id=User(id=self.user.id), description='', title='Monjardin', zipcode='75001')
+    
+
+    def test_should_get_garden_details_by_id(self):
+        response = self.client.get(f'/api/gardens/{self.garden.id}')
+        json_response = json.loads(response.content)
+        self.assertEqual(json_response['id'], self.garden.id)
+        self.assertEqual(json_response['description'],'')
+        self.assertEqual(json_response['title'], 'Monjardin')
+        self.assertEqual(json_response['zipcode'],'75001')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_should_not_get_garden_detail_without_existing_id(self):
+        response = self.client.get('/api/gardens/44')
+        json_response=json.loads(response.content)
+        self.assertEqual(response.status_code,status.HTTP_404_NOT_FOUND)
+        self.assertEqual(json_response['detail'],'Not found.' )
+
+    
+class TestActionGarden(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('hello@world', 'hello_world_123', has_garden=True)
+        self.garden = Garden.objects.create(user_id=User(id=self.user.id), title='Monjardin', description='', zipcode='75001')
+    
+    #authorization not implemented yet 
+    # def test_cannot_delete_garden_only_if_you_are_owner(self):
+    #     response = self.client.delete(f'/api/gardens/{self.garden.id}')
+    #     json_response = json.loads(response.content)
+    #     self.assertNotEqual(json_response['user_id'],)
+
+    def test_update_garden(self):
+        data = {"title": "tonJardin"}
+        response = self.client.patch(f"/api/gardens/{self.garden.id}", data, format="json")
+        self.assertEqual(response.status_code,status.HTTP_200_OK)
+
+
+    def test_delete_garden(self):
+        response= self.client.delete(f'/api/gardens/{self.garden.id}')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+
+    
+
+
+
+    
+
+
+    
+     
+
