@@ -2,10 +2,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
-from rest_framework import routers
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions, routers
 
 from accounts.views import AuthViewSet, UserViewSet
 from apis.views import GardenViewset, PhotoViewset
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="JardiPotes API", default_version="v1", description="JardiPotes API Docs"
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 # Ici nous créons notre routeur
 router = routers.SimpleRouter(trailing_slash=False)
@@ -25,10 +35,14 @@ POST ${API_URL}/validate_token/ - will return a 200 if a given token is valid
 urlpatterns = [
     path("", include(router.urls)),
     re_path("admin/", admin.site.urls),
-    #  re_path('api/', include('apis.urls')),
+    re_path(
+        r"^swagger(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
+    ),
+    re_path(
+        r"^swagger/$",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# urlpatterns = [
-#     router.urls,
-#     re_path('admin/', admin.site.urls),
-# ]
