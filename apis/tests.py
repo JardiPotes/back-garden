@@ -146,10 +146,15 @@ class TestActionGarden(APITestCase):
         self.user = User.objects.create_user('hello@world', 'hello_world_123', has_garden=True)
         self.garden = Garden.objects.create(user_id=User(id=self.user.id), title='Monjardin', description='', address='4 rue jean', zipcode='75001')
     
+    #authorization not implemented yet 
     # def test_cannot_delete_garden_only_if_you_are_owner(self):
     #     response = self.client.delete(f'/api/gardens/{self.garden.id}')
     #     json_response = json.loads(response.content)
     #     self.assertNotEqual(json_response['user_id'],)
+
+    def test_update_garden(self):
+        response=self.client.update(f'/api/gardens/{self.garden.id}')
+        self.assertEqual(response.status_code,status.HTTP_200_OK)
 
 
     def test_delete_garden(self):
