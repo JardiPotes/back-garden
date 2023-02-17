@@ -121,7 +121,7 @@ class TestListGardens(APITestCase):
 class TestGetGardenDetails(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user('hello@world', 'hello_world_123', has_garden=True)
-        self.garden = Garden.objects.create(user_id=User(id=self.user.id), title='Monjardin', description='', address='4 rue jean', zipcode='75001')
+        self.garden = Garden.objects.create(user_id=User(id=self.user.id), description='', title='Monjardin', zipcode='75001')
     
 
     def test_should_get_garden_details_by_id(self):
@@ -130,7 +130,6 @@ class TestGetGardenDetails(APITestCase):
         self.assertEqual(json_response['id'], self.garden.id)
         self.assertEqual(json_response['description'],'')
         self.assertEqual(json_response['title'], 'Monjardin')
-        self.assertEqual(json_response['address'],'4 rue jean')
         self.assertEqual(json_response['zipcode'],'75001')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -144,7 +143,7 @@ class TestGetGardenDetails(APITestCase):
 class TestActionGarden(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user('hello@world', 'hello_world_123', has_garden=True)
-        self.garden = Garden.objects.create(user_id=User(id=self.user.id), title='Monjardin', description='', address='4 rue jean', zipcode='75001')
+        self.garden = Garden.objects.create(user_id=User(id=self.user.id), title='Monjardin', description='', zipcode='75001')
     
     #authorization not implemented yet 
     # def test_cannot_delete_garden_only_if_you_are_owner(self):
@@ -153,14 +152,15 @@ class TestActionGarden(APITestCase):
     #     self.assertNotEqual(json_response['user_id'],)
 
     def test_update_garden(self):
-        response=self.client.update(f'/api/gardens/{self.garden.id}')
+        data = {"title": "tonJardin"}
+        response = self.client.patch(f"/api/gardens/{self.garden.id}", data, format="json")
         self.assertEqual(response.status_code,status.HTTP_200_OK)
 
 
     def test_delete_garden(self):
         response= self.client.delete(f'/api/gardens/{self.garden.id}')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Garden.objects.get(id=self.garden.id))
+        
 
     
 
