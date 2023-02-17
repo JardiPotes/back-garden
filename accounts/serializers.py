@@ -91,6 +91,20 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return value
 
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+    nickname = serializers.CharField(required=False)
+    has_garden = serializers.BooleanField(required=False)
+    bio = serializers.CharField(
+        style={"base_template": "textarea.html"}, required=False
+    )
+    profile_image = serializers.CharField(required=False)
+    experience = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = User
+        fields = ("nickname", "has_garden", "bio", "profile_image", "experience")
+
+
 class PasswordChangeSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)

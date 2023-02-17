@@ -7,18 +7,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0003_user_experience'),
+        ("accounts", "0003_user_experience"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='experience',
-            field=models.IntegerField(default=1, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(5)]),
+            model_name="user",
+            name="experience",
+            field=models.IntegerField(
+                default=1,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(5),
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='profile_image',
+            model_name="user",
+            name="profile_image",
             field=models.URLField(blank=True, null=True),
         ),
     ]
