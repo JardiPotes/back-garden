@@ -15,7 +15,8 @@ class TestCreateGarden(APITestCase):
     def test_can_create_garden_with_valid_attributes(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(user_id=user.id, title="mylene")
+        data = GardenFactory.create_garden_dict(
+            user_id=user.id, title="mylene")
 
         response = self.client.post("/api/gardens", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -25,7 +26,8 @@ class TestCreateGarden(APITestCase):
     def test_cannot_create_garden_with_zipcode_too_long(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(user_id=user.id, zipcode="469999")
+        data = GardenFactory.create_garden_dict(
+            user_id=user.id, zipcode="469999")
 
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
@@ -58,7 +60,8 @@ class TestCreateGarden(APITestCase):
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            json_response["user_id"], ['Invalid pk "4" - object does not exist.']
+            json_response["user_id"], [
+                'Invalid pk "4" - object does not exist.']
         )
 
 
@@ -117,3 +120,20 @@ class TestListGardens(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(json_response["count"], 2)
         self.assertNotIn("93100", zipcode_list)
+
+
+class TestGardenPaginations(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            "hello@world", "hello_world_123", has_garden=True
+        )
+        for i in range(12):
+            self.garden = Garden.objects.create(user_id=User(self.user.id))
+
+    def test_pagination_page_size_should_be_ten(self):
+        response = self.client.get("/api/gardens")
+        json_response = json.loads(response.content)
+
+        self.assertEqual(json_response["count"], 12)
+        self.assertEqual(len(json_response["results"]), 10)
+        self.assertNotEqual(json_response["next"], None)
