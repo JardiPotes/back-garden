@@ -1,7 +1,5 @@
 import json
 
-from django.core import serializers
-from django.urls import reverse, reverse_lazy
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -15,8 +13,8 @@ class TestCreateGarden(APITestCase):
     def test_can_create_garden_with_valid_attributes(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(
-            user_id=user.id, title="mylene")
+        data = GardenFactory.create_garden_dict(user_id=user.id, title="mylene")
+        self.client.force_authenticate(user=user)
 
         response = self.client.post("/api/gardens", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -26,9 +24,9 @@ class TestCreateGarden(APITestCase):
     def test_cannot_create_garden_with_zipcode_too_long(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(
-            user_id=user.id, zipcode="469999")
+        data = GardenFactory.create_garden_dict(user_id=user.id, zipcode="469999")
 
+        self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -46,6 +44,8 @@ class TestCreateGarden(APITestCase):
         data = GardenFactory.create_garden_dict(
             user_id=user.id, title=random_string_more_than_hundred_char
         )
+
+        self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -56,12 +56,13 @@ class TestCreateGarden(APITestCase):
 
     def test_cannot_create_garden_if_user_does_not_exist(self):
         data = GardenFactory.create_garden_dict(user_id="4")
+        user = UserFactory.create_user()
+        self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            json_response["user_id"], [
-                'Invalid pk "4" - object does not exist.']
+            json_response["user_id"], ['Invalid pk "4" - object does not exist.']
         )
 
 
@@ -120,6 +121,40 @@ class TestListGardens(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(json_response["count"], 2)
         self.assertNotIn("93100", zipcode_list)
+
+
+class TestUdateGarden(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            "hello@world", "hello_world_123", has_garden=True
+        )
+        self.user2 = User.objects.create_user(
+            "hey@world.fr", "hekolololololo", has_garden=True
+        )
+        self.garden = Garden.objects.create(
+            user_id=User(id=self.user.id), title="toto", zipcode="75001"
+        )
+
+    def test_should_allow_to_update_if_user_is_the_owner(self):
+
+        self.client.force_authenticate(user=self.user)
+        data = {"title": "foobar"}
+        response = self.client.patch(
+            f"/api/gardens/{self.garden.id}", data, format="json"
+        )
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json_response["title"], data["title"])
+
+    def test_should_not_allow_to_update_garden_if_auth_user_is_not_the_owner(self):
+
+        self.user.refresh_from_db()
+        self.client.force_authenticate(user=self.user2)
+        data = {"title": "foobar"}
+        response = self.client.put(
+            f"/api/gardens/{self.garden.id}", data, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class TestGardenPaginations(APITestCase):

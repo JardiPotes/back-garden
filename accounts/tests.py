@@ -2,12 +2,10 @@ import json
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.test import (APIClient, APIRequestFactory, APITestCase,
-                                 RequestsClient, force_authenticate)
+from rest_framework.test import APITestCase
 
 from .factory import UserFactory
 from .models import User
-from .views import AuthViewSet
 
 
 class TestRegisterUser(APITestCase):
@@ -116,9 +114,9 @@ class TestUserLogin(APITestCase):
 class TestUserLogout(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user("john@snow.com", "johnpassword")
-        self.client.force_authenticate(self.user)
 
     def test_can_logout(self):
+        self.client.force_authenticate(user=self.user)
         response = self.client.post("/api/auth/logout")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -176,5 +174,4 @@ class TestUpdateUser(APITestCase):
         response = self.client.put(f"/api/users/{self.user.id}", data, format="json")
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    # self.assertEqual(json_response["bio"], "barfoo")
+        self.assertEqual(json_response["bio"], "barfoo")

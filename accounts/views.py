@@ -1,16 +1,13 @@
 from django.contrib.auth import get_user_model, login, logout
 from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
-from rest_framework.viewsets import ModelViewSet
 
 from . import serializers
-from .serializers import AuthUserSerializer, UserUpdateSerializer
 from .utils import create_user_account, get_and_authenticate_user
 
 User = get_user_model()
@@ -96,7 +93,6 @@ class AuthViewSet(viewsets.GenericViewSet):
         return super().get_serializer_class()
 
 
-# TODO Implement update user function
 class UserViewSet(viewsets.ViewSet):
     permission_classes = [
         AllowAny,
