@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 
 from . import serializers
-from .serializers import AuthUserSerializer, UserUpdateSerializer
 from .utils import create_user_account, get_and_authenticate_user
 
 User = get_user_model()
@@ -94,7 +93,6 @@ class AuthViewSet(viewsets.GenericViewSet):
         return super().get_serializer_class()
 
 
-# TODO Implement update user function
 class UserViewSet(viewsets.ViewSet):
     permission_classes = [
         AllowAny,
