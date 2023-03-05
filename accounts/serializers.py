@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.models import BaseUserManager
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-
+from django.core.validators import MaxValueValidator, MinValueValidator
 from apis.serializers import GardenSerializer
 
 User = get_user_model()
@@ -71,6 +71,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         style={"base_template": "textarea.html"}, required=False
     )
     profile_image = serializers.ImageField(required=False)
+    experience = serializers.IntegerField(
+        required=True, validators=[MinValueValidator(1), MaxValueValidator(5)])
 
     class Meta:
         model = User
