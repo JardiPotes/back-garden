@@ -49,4 +49,4 @@ jobs:
           docker-compose up -d db
       - name: Run Tests
         run: |
-          poetry run python manage.py test
+          pytest
