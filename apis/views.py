@@ -2,9 +2,8 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
 
-from .permissions import IsGardenOwnerPermission
-
 from .models import Garden, Photo
+from .permissions import IsGardenOwnerPermission
 from .serializers import GardenSerializer, PhotoSerializer
 
 """ Garden methods """

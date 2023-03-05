@@ -13,27 +13,28 @@ class TestCreateGarden(APITestCase):
     def test_can_create_garden_with_valid_attributes(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(user_id=user.id, title="mylene")
+        data = GardenFactory.create_garden_dict(
+            user_id=user.id, title="mylene")
         self.client.force_authenticate(user=user)
 
         response = self.client.post("/api/gardens", data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Garden.objects.count(), 1)
-        self.assertEqual(Garden.objects.get().title, "mylene")
+        assert response.status_code == 201
+        assert Garden.objects.count() == 1
+        assert Garden.objects.get().title == "mylene"
 
     def test_cannot_create_garden_with_zipcode_too_long(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(user_id=user.id, zipcode="469999")
+        data = GardenFactory.create_garden_dict(
+            user_id=user.id, zipcode="469999")
 
         self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json_response["zipcode"],
-            ["Ensure this field has no more than 5 characters."],
-        )
+        assert response.status_code == 400
+        assert json_response["zipcode"] == [
+            "Ensure this field has no more than 5 characters."
+        ]
 
     def test_cannot_create_garden_with_too_long_title(self):
 
@@ -48,11 +49,10 @@ class TestCreateGarden(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json_response["title"],
-            ["Ensure this field has no more than 100 characters."],
-        )
+        assert response.status_code == 400
+        assert json_response["title"] == [
+            "Ensure this field has no more than 100 characters."
+        ]
 
     def test_cannot_create_garden_if_user_does_not_exist(self):
         data = GardenFactory.create_garden_dict(user_id="4")
@@ -60,10 +60,9 @@ class TestCreateGarden(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            json_response["user_id"], ['Invalid pk "4" - object does not exist.']
-        )
+        assert response.status_code == 400
+        assert json_response["user_id"] == [
+            'Invalid pk "4" - object does not exist.']
 
 
 class TestListGardens(APITestCase):
@@ -90,11 +89,10 @@ class TestListGardens(APITestCase):
         res_list = []
         for res in json_response["results"]:
             res_list.append(res["user_id"])
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json_response["count"], 3)
-        self.assertIn(self.user.id, res_list)
-        self.assertIn(self.user2.id, res_list)
+        assert response.status_code == 200
+        assert json_response["count"] == 3
+        assert self.user.id in res_list
+        assert self.user2.id in res_list
 
     def test_should_accept_filter_on_user_and_list_gardens(self):
         response = self.client.get("/api/gardens", {"user_id": self.user2.id})
@@ -106,10 +104,10 @@ class TestListGardens(APITestCase):
         for res in json_response["results"]:
             garden_id_list.append(res["id"])
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json_response["count"], 2)
-        self.assertNotIn(self.user.id, user_id_list)
-        self.assertNotIn(self.garden.id, garden_id_list)
+        assert response.status_code == 200
+        assert json_response["count"] == 2
+        assert self.user.id not in user_id_list
+        assert self.garden.id not in garden_id_list
 
     def test_should_accept_filter_on_zipcode_and_list_gardens(self):
         response = self.client.get("/api/gardens", {"zipcode": "75001"})
@@ -117,10 +115,9 @@ class TestListGardens(APITestCase):
         zipcode_list = []
         for res in json_response["results"]:
             zipcode_list.append(res["zipcode"])
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json_response["count"], 2)
-        self.assertNotIn("93100", zipcode_list)
+        assert response.status_code == 200
+        assert json_response["count"] == 2
+        assert "93100" not in zipcode_list
 
 
 class TestUdateGarden(APITestCase):
@@ -143,8 +140,8 @@ class TestUdateGarden(APITestCase):
             f"/api/gardens/{self.garden.id}", data, format="json"
         )
         json_response = json.loads(response.content)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json_response["title"], data["title"])
+        assert response.status_code == 200
+        assert json_response["title"] == data["title"]
 
     def test_should_not_allow_to_update_garden_if_auth_user_is_not_the_owner(self):
 
@@ -154,7 +151,7 @@ class TestUdateGarden(APITestCase):
         response = self.client.put(
             f"/api/gardens/{self.garden.id}", data, format="json"
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        assert response.status_code == 403
 
 
 class TestGardenPaginations(APITestCase):
@@ -168,7 +165,6 @@ class TestGardenPaginations(APITestCase):
     def test_pagination_page_size_should_be_ten(self):
         response = self.client.get("/api/gardens")
         json_response = json.loads(response.content)
-
-        self.assertEqual(json_response["count"], 12)
-        self.assertEqual(len(json_response["results"]), 10)
-        self.assertNotEqual(json_response["next"], None)
+        assert json_response["count"] == 12
+        assert len(json_response["results"]) == 10
+        assert json_response["next"] is not None

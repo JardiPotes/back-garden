@@ -30,7 +30,9 @@ class User(AbstractUser):
     username = None
     email = models.EmailField(verbose_name="email address", unique=True)
     nickname = models.CharField(max_length=100, null=True)
-    profile_image = models.URLField(null=True, blank=True)
+    profile_image = models.ImageField(
+        default="", upload_to="accounts/images", null=True
+    )
     bio = models.TextField(blank=True, null=True)
     has_garden = models.BooleanField(default=False)
     experience = models.IntegerField(

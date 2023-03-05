@@ -65,6 +65,13 @@ class UserSerializer(serializers.Serializer):
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
+    nickname = serializers.CharField(required=False)
+    has_garden = serializers.BooleanField(required=False)
+    bio = serializers.CharField(
+        style={"base_template": "textarea.html"}, required=False
+    )
+    profile_image = serializers.ImageField(required=False)
+
     class Meta:
         model = User
         fields = (
@@ -95,12 +102,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(
         style={"base_template": "textarea.html"}, required=False
     )
-    profile_image = serializers.CharField(required=False)
-    experience = serializers.IntegerField(required=False)
+    profile_image = serializers.ImageField(required=False)
 
     class Meta:
         model = User
-        fields = ("nickname", "has_garden", "bio", "profile_image", "experience")
+        fields = ("nickname", "has_garden", "bio",
+                  "profile_image", "experience")
 
 
 class PasswordChangeSerializer(serializers.Serializer):
@@ -109,7 +116,8 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate_current_password(self, value):
         if not self.context["request"].user.check_password(value):
-            raise serializers.ValidationError("Current password does not match")
+            raise serializers.ValidationError(
+                "Current password does not match")
         return value
 
     def validate_new_password(self, value):

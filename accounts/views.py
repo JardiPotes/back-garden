@@ -3,6 +3,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
@@ -23,6 +24,8 @@ class AuthViewSet(viewsets.GenericViewSet):
         "register": serializers.UserRegisterSerializer,
         "password_change": serializers.PasswordChangeSerializer,
     }
+
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
 
     @action(
         methods=[
@@ -99,6 +102,8 @@ class UserViewSet(viewsets.ViewSet):
         AllowAny,
         IsAuthenticated,
     ]
+
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
     queryset = User.objects.all()
 
     def get_permissions(self):
