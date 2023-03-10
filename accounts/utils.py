@@ -14,3 +14,15 @@ def create_user_account(email, password, **extra_fields):
         email=email, password=password, **extra_fields
     )
     return user
+
+
+def temporary_image():
+    import tempfile
+
+    from PIL import Image
+
+    image = Image.new("RGB", (100, 100))
+    tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
+    image.save(tmp_file, "jpeg")
+    tmp_file.seek(0)
+    return tmp_file
