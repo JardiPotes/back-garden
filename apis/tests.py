@@ -1,6 +1,5 @@
 import json
 
-from rest_framework import status
 from rest_framework.test import APITestCase
 
 from accounts.factory import UserFactory
@@ -13,8 +12,7 @@ class TestCreateGarden(APITestCase):
     def test_can_create_garden_with_valid_attributes(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(
-            user_id=user.id, title="mylene")
+        data = GardenFactory.create_garden_dict(user_id=user.id, title="mylene")
         self.client.force_authenticate(user=user)
 
         response = self.client.post("/api/gardens", data, format="json")
@@ -25,8 +23,7 @@ class TestCreateGarden(APITestCase):
     def test_cannot_create_garden_with_zipcode_too_long(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(
-            user_id=user.id, zipcode="469999")
+        data = GardenFactory.create_garden_dict(user_id=user.id, zipcode="469999")
 
         self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
@@ -61,8 +58,7 @@ class TestCreateGarden(APITestCase):
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
         assert response.status_code == 400
-        assert json_response["user_id"] == [
-            'Invalid pk "4" - object does not exist.']
+        assert json_response["user_id"] == ['Invalid pk "4" - object does not exist.']
 
 
 class TestListGardens(APITestCase):

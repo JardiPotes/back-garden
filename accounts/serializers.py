@@ -1,14 +1,25 @@
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.models import BaseUserManager
+from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from django.core.validators import MaxValueValidator, MinValueValidator
+
 from apis.serializers import GardenSerializer
 
 User = get_user_model()
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
+    gardens = GardenSerializer(many=True, required=False)
+
+    def get_profile_image(self, user):
+        request = self.context.get("request")
+        if user.profile_image.url:
+            request.build_absolute_uri(user.profile_image.url)
+        else:
+            default_profile_image_url = "accounts/images/default_profile_image.png"
+            return request.build_absolute_uri(default_profile_image_url)
+
     class Meta:
         model = User
         fields = (
@@ -20,8 +31,6 @@ class AuthUserSerializer(serializers.ModelSerializer):
             "gardens",
             "experience",
         )
-
-    gardens = GardenSerializer(many=True, required=False)
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -72,7 +81,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     )
     profile_image = serializers.ImageField(required=False)
     experience = serializers.IntegerField(
-        required=True, validators=[MinValueValidator(1), MaxValueValidator(5)])
+        required=True, validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
 
     class Meta:
         model = User
@@ -108,8 +118,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("nickname", "has_garden", "bio",
-                  "profile_image", "experience")
+        fields = ("nickname", "has_garden", "bio", "profile_image", "experience")
 
 
 class PasswordChangeSerializer(serializers.Serializer):
@@ -118,8 +127,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate_current_password(self, value):
         if not self.context["request"].user.check_password(value):
-            raise serializers.ValidationError(
-                "Current password does not match")
+            raise serializers.ValidationError("Current password does not match")
         return value
 
     def validate_new_password(self, value):

@@ -40,7 +40,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = create_user_account(**serializer.validated_data)
-        data = serializers.AuthUserSerializer(user).data
+        data = serializers.AuthUserSerializer(user, context={"request": request}).data
         return Response(data=data, status=status.HTTP_201_CREATED)
 
     @action(
@@ -89,8 +89,7 @@ class AuthViewSet(viewsets.GenericViewSet):
 
     def get_serializer_class(self):
         if not isinstance(self.serializer_classes, dict):
-            raise ImproperlyConfigured(
-                "serializer_classes should be a dict mapping.")
+            raise ImproperlyConfigured("serializer_classes should be a dict mapping.")
 
         if self.action in self.serializer_classes.keys():
             return self.serializer_classes[self.action]
@@ -114,13 +113,15 @@ class UserViewSet(viewsets.ViewSet):
         return [permission() for permission in permission_classes]
 
     def list(self, request):
-        serializer = serializers.AuthUserSerializer(self.queryset, many=True)
+        serializer = serializers.AuthUserSerializer(
+            self.queryset, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
 
         user = get_object_or_404(self.queryset, pk=pk)
-        serializer = serializers.AuthUserSerializer(user)
+        serializer = serializers.AuthUserSerializer(user, context={"request": request})
         return Response(serializer.data)
 
     def update(self, request, pk=None):
@@ -128,7 +129,8 @@ class UserViewSet(viewsets.ViewSet):
         user_id = str(request.user.id)
         if user_id == pk:
             serializer = serializers.UserUpdateSerializer(
-                user, data=request.data)
+                user, data=request.data, context={"request": request}
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

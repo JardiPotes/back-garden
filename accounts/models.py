@@ -31,7 +31,7 @@ class User(AbstractUser):
     email = models.EmailField(verbose_name="email address", unique=True)
     nickname = models.CharField(max_length=100, null=True)
     profile_image = models.ImageField(
-        default="", upload_to="accounts/images"
+        default="accounts/images/default_profile_image.png", upload_to="accounts/images"
     )
     bio = models.TextField(blank=True, null=True)
     has_garden = models.BooleanField(default=False)

@@ -35,7 +35,7 @@ ALLOWED_HOSTS = ["188.165.238.74", "127.0.0.1", "localhost"]
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
-# MEDIA_ROOT =os.path.join(os.path.dirname(BASE_DIR), 'accounts/images')
+# MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'accounts/images')
 
 # MEDIA_URL = '/images/'
 
