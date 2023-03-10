@@ -40,7 +40,8 @@ class AuthViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = create_user_account(**serializer.validated_data)
-        data = serializers.AuthUserSerializer(user, context={"request": request}).data
+        data = serializers.AuthUserSerializer(
+            user, context={"request": request}).data
         return Response(data=data, status=status.HTTP_201_CREATED)
 
     @action(
@@ -65,7 +66,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         ],
         detail=False,
         permission_classes=[
-            IsAuthenticated,
+            AllowAny,
         ],
     )
     def logout(self, request):
@@ -89,7 +90,8 @@ class AuthViewSet(viewsets.GenericViewSet):
 
     def get_serializer_class(self):
         if not isinstance(self.serializer_classes, dict):
-            raise ImproperlyConfigured("serializer_classes should be a dict mapping.")
+            raise ImproperlyConfigured(
+                "serializer_classes should be a dict mapping.")
 
         if self.action in self.serializer_classes.keys():
             return self.serializer_classes[self.action]
@@ -121,7 +123,8 @@ class UserViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
 
         user = get_object_or_404(self.queryset, pk=pk)
-        serializer = serializers.AuthUserSerializer(user, context={"request": request})
+        serializer = serializers.AuthUserSerializer(
+            user, context={"request": request})
         return Response(serializer.data)
 
     def update(self, request, pk=None):
