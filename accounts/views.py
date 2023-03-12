@@ -59,7 +59,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         data = serializers.UserLoginSerializer(user).data
         user_data = {"user": serializers.AuthUserSerializer(
             user, context={"request": request}).data}
-        response = data | user_data
+        response = {**data, **user_data}
         login(request, user)
         return Response(data=response, status=status.HTTP_200_OK)
 
