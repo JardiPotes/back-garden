@@ -3,6 +3,7 @@ from django.contrib.auth.models import BaseUserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from apis.serializers import GardenSerializer
 
 User = get_user_model()
 
@@ -15,6 +16,7 @@ class AuthUserSerializer(serializers.ModelSerializer):
         else:
             default_profile_image_url = "accounts/images/default_profile_image.png"
             return request.build_absolute_uri(default_profile_image_url)
+    gardens = GardenSerializer(many=True, required=False)
 
     class Meta:
         model = User
@@ -22,21 +24,21 @@ class AuthUserSerializer(serializers.ModelSerializer):
             "id",
             "nickname",
             "bio",
-            "has_garden",
+            "gardens",
             "profile_image",
             "experience",
         )
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length=300, required=True)
+    email = serializers.CharField(
+        max_length=300, required=True, write_only=True)
     password = serializers.CharField(
         required=True, write_only=True, trim_whitespace=False
     )
 
     auth_token = serializers.SerializerMethodField()
     id = serializers.SerializerMethodField()
-    # user = AuthUserSerializer(source='email', required=False)
 
     def get_auth_token(self, obj):
         token = Token.objects.get_or_create(user=obj)
@@ -57,23 +59,8 @@ class EmptySerializer(serializers.Serializer):
     pass
 
 
-class UserSerializer(serializers.Serializer):
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "email",
-            "password",
-            "nickname",
-            "has_garden",
-            "bio",
-            "profile_image",
-        )
-
-
 class UserRegisterSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(required=False)
-    has_garden = serializers.BooleanField(required=False)
     bio = serializers.CharField(
         style={"base_template": "textarea.html"}, required=False
     )
@@ -89,7 +76,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "nickname",
-            "has_garden",
             "bio",
             "profile_image",
             "experience",
@@ -108,7 +94,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(required=False)
-    has_garden = serializers.BooleanField(required=False)
     bio = serializers.CharField(
         style={"base_template": "textarea.html"}, required=False
     )
@@ -116,7 +101,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("nickname", "has_garden", "bio",
+        fields = ("nickname", "bio",
                   "profile_image", "experience")
 
 
