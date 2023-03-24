@@ -3,15 +3,12 @@ from django.contrib.auth.models import BaseUserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-
 from apis.serializers import GardenSerializer
 
 User = get_user_model()
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
-    gardens = GardenSerializer(many=True, required=False)
-
     def get_profile_image(self, user):
         request = self.context.get("request")
         if user.profile_image.url:
@@ -19,6 +16,7 @@ class AuthUserSerializer(serializers.ModelSerializer):
         else:
             default_profile_image_url = "accounts/images/default_profile_image.png"
             return request.build_absolute_uri(default_profile_image_url)
+    gardens = GardenSerializer(many=True, required=False)
 
     class Meta:
         model = User
@@ -26,22 +24,18 @@ class AuthUserSerializer(serializers.ModelSerializer):
             "id",
             "nickname",
             "bio",
-            "has_garden",
-            "profile_image",
             "gardens",
+            "profile_image",
             "experience",
         )
 
 
-class UserLoginSerializer(serializers.Serializer):
-    email = serializers.CharField(max_length=300, required=True)
+class UserLoginSerializer(serializers.ModelSerializer):
+    email = serializers.CharField(
+        max_length=300, required=True, write_only=True)
     password = serializers.CharField(
         required=True, write_only=True, trim_whitespace=False
     )
-
-    class meta:
-        model = User
-        fields = ("auth_token", "id")
 
     auth_token = serializers.SerializerMethodField()
     id = serializers.SerializerMethodField()
@@ -54,28 +48,19 @@ class UserLoginSerializer(serializers.Serializer):
         id = User.objects.get(email=obj.email).id
         return id
 
+    class Meta:
+        model = User
+        fields = ("id", "email", "password", "auth_token")
+        extra_kwargs = {"email": {"write_only": True},
+                        "password": {"write_only": True}}
+
 
 class EmptySerializer(serializers.Serializer):
     pass
 
 
-class UserSerializer(serializers.Serializer):
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "email",
-            "password",
-            "nickname",
-            "has_garden",
-            "bio",
-            "profile_image",
-        )
-
-
 class UserRegisterSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(required=False)
-    has_garden = serializers.BooleanField(required=False)
     bio = serializers.CharField(
         style={"base_template": "textarea.html"}, required=False
     )
@@ -91,7 +76,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "nickname",
-            "has_garden",
             "bio",
             "profile_image",
             "experience",
@@ -110,7 +94,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(required=False)
-    has_garden = serializers.BooleanField(required=False)
     bio = serializers.CharField(
         style={"base_template": "textarea.html"}, required=False
     )
@@ -118,7 +101,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("nickname", "has_garden", "bio", "profile_image", "experience")
+        fields = ("nickname", "bio",
+                  "profile_image", "experience")
 
 
 class PasswordChangeSerializer(serializers.Serializer):
@@ -127,7 +111,8 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate_current_password(self, value):
         if not self.context["request"].user.check_password(value):
-            raise serializers.ValidationError("Current password does not match")
+            raise serializers.ValidationError(
+                "Current password does not match")
         return value
 
     def validate_new_password(self, value):
