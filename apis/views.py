@@ -2,9 +2,9 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Garden, Photo
-from .permissions import IsGardenOwnerPermission
-from .serializers import GardenSerializer, PhotoSerializer
+from .models import Comment, Garden, Photo
+from .permissions import IsCommentOwnerPermission, IsGardenOwnerPermission
+from .serializers import CommentSerializer, GardenSerializer, PhotoSerializer
 
 """ Garden methods """
 
@@ -45,3 +45,9 @@ class PhotoViewset(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
+
+
+class CommentViewset(ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsCommentOwnerPermission]
+    queryset = Comment.objects.all()

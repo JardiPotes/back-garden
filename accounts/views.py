@@ -40,8 +40,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = create_user_account(**serializer.validated_data)
-        data = serializers.AuthUserSerializer(
-            user, context={"request": request}).data
+        data = serializers.AuthUserSerializer(user, context={"request": request}).data
         return Response(data=data, status=status.HTTP_201_CREATED)
 
     @action(
@@ -57,8 +56,11 @@ class AuthViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         user = get_and_authenticate_user(**serializer.validated_data)
         data = serializers.UserLoginSerializer(user).data
-        user_data = {"user": serializers.AuthUserSerializer(
-            user, context={"request": request}).data}
+        user_data = {
+            "user": serializers.AuthUserSerializer(
+                user, context={"request": request}
+            ).data
+        }
         response = {**data, **user_data}
         login(request, user)
         return Response(data=response, status=status.HTTP_200_OK)
@@ -93,8 +95,7 @@ class AuthViewSet(viewsets.GenericViewSet):
 
     def get_serializer_class(self):
         if not isinstance(self.serializer_classes, dict):
-            raise ImproperlyConfigured(
-                "serializer_classes should be a dict mapping.")
+            raise ImproperlyConfigured("serializer_classes should be a dict mapping.")
 
         if self.action in self.serializer_classes.keys():
             return self.serializer_classes[self.action]
@@ -126,8 +127,7 @@ class UserViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
 
         user = get_object_or_404(self.queryset, pk=pk)
-        serializer = serializers.AuthUserSerializer(
-            user, context={"request": request})
+        serializer = serializers.AuthUserSerializer(user, context={"request": request})
         return Response(serializer.data)
 
     def update(self, request, pk=None):

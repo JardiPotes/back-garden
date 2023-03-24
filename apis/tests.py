@@ -164,3 +164,26 @@ class TestGardenPaginations(APITestCase):
         assert json_response["count"] == 12
         assert len(json_response["results"]) == 10
         assert json_response["next"] is not None
+
+
+class TestLeavingComments(APITestCase):
+    def test_should_allow_a_user_to_comment_on_another(self):
+        user = UserFactory.create_user()
+        user2 = UserFactory.create_user()
+        self.client.force_authenticate(user=user)
+        data = {"author_id": user.id, "receiver_id": user2.id, "content": "Hello"}
+
+        response = self.client.post("/api/comments", data, format="json")
+        json_response = json.loads(response.content)
+        assert response.status_code == 201
+        assert json_response["author_id"] == user.id
+        assert json_response["receiver_id"] == user2.id
+        assert json_response["content"] == data["content"]
+
+    def test_with_unauthenticated_user_should_fail(self):
+        user = UserFactory.create_user()
+        user2 = UserFactory.create_user()
+        data = {"author_id": user.id, "receiver_id": user2.id, "content": "Hello"}
+
+        response = self.client.post("/api/comments", data, format="json")
+        assert response.status_code == 401

@@ -26,3 +26,15 @@ class Photo(models.Model):
     image = models.ImageField(default="", upload_to="apis/images")
     isMainPhoto = models.BooleanField()
     season = models.IntegerField()
+
+
+class Comment(models.Model):
+    author_id = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="author_id"
+    )
+    receiver_id = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="receiver_id"
+    )
+    content = models.TextField(blank=False, null=False)
+    created_at = models.DateTimeField(default=now)
+    updated_at = models.DateTimeField(default=now)
