@@ -51,3 +51,10 @@ class CommentViewset(ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsCommentOwnerPermission]
     queryset = Comment.objects.all()
+
+    def get_queryset(self):
+        queryset = self.queryset
+        receiver_id = self.request.query_params.get("receiver_id")
+        if receiver_id is not None:
+            queryset = self.queryset.filter(receiver_id=receiver_id)
+        return queryset
