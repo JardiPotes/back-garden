@@ -6,3 +6,10 @@ class IsGardenOwnerPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.user_id.id == request.user.id
+
+
+class IsCommentOwnerPermission(permissions.BasePermission):
+    def has_comment_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.author_id.id == request.user.id

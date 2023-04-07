@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from accounts.factory import UserFactory
 from apis.factory import GardenFactory, TestHelper
 
-from .models import Garden, User
+from .models import Comment, Garden, User
 
 
 class TestCreateGarden(APITestCase):
@@ -164,3 +164,65 @@ class TestGardenPaginations(APITestCase):
         assert json_response["count"] == 12
         assert len(json_response["results"]) == 10
         assert json_response["next"] is not None
+
+
+class TestLeavingComments(APITestCase):
+    def test_should_allow_a_user_to_comment_on_another(self):
+        user = UserFactory.create_user()
+        user2 = UserFactory.create_user()
+        self.client.force_authenticate(user=user)
+        data = {"author_id": user.id, "receiver_id": user2.id, "content": "coucou"}
+
+        response = self.client.post("/api/comments", data, format="json")
+        json_response = json.loads(response.content)
+        assert response.status_code == 201
+        assert json_response["author_id"] == user.id
+        assert json_response["receiver_id"] == user2.id
+        assert json_response["content"] == data["content"]
+
+    def test_with_unauthenticated_user_should_fail(self):
+        user = UserFactory.create_user()
+        user2 = UserFactory.create_user()
+        data = {"author_id": user.id, "receiver_id": user2.id, "content": "Hello"}
+
+        response = self.client.post("/api/comments", data, format="json")
+        assert response.status_code == 401
+
+
+class TestFetchCommentsOfAGivenUser(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hello@world", "hello_world_123")
+        self.user2 = User.objects.create_user("foo@bar.lol", "foobarlol")
+        self.comment = Comment.objects.create(
+            receiver_id=User(id=self.user.id), author_id=User(id=self.user2.id)
+        )
+        self.comment2 = Comment.objects.create(
+            receiver_id=User(id=self.user2.id), author_id=User(id=self.user.id)
+        )
+
+    def test_should_fetch_author_info(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(f"/api/comments?receiver_id={self.user.id}")
+        json_response = json.loads(response.content)
+        receiver_id_list = []
+        for res in json_response["results"]:
+            receiver_id_list.append(res["id"])
+
+        author_list = []
+        for res in json_response["results"]:
+            author_list.append(res["author"])
+        author = author_list[0]
+
+        assert response.status_code == 200
+        assert json_response["count"] == 1
+        assert self.user2.id not in receiver_id_list
+        assert author["id"] == self.user2.id
+        assert author["experience"] == self.user2.experience
+        assert author["profile_image"] is not None
+
+    def test_should_return_empty_list_if_no_comments_for_the_given_user(self):
+        user = UserFactory.create_user()
+        self.client.force_authenticate(user=user)
+        response = self.client.get(f"/api/comments?receiver_id={user.id}")
+        json_response = json.loads(response.content)
+        assert json_response["results"] == []
