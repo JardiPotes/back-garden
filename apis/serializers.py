@@ -20,7 +20,7 @@ class GardenSerializer(serializers.ModelSerializer):
 class PhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Photo
-        fields = ("garden_id", "slug", "image", "isMainPhoto", "season")
+        fields = ("id", "garden_id", "image", "is_main_photo", "season")
 
 
 class CommentSerializer(serializers.ModelSerializer):

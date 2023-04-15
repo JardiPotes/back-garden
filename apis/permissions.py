@@ -8,6 +8,14 @@ class IsGardenOwnerPermission(permissions.BasePermission):
         return obj.user_id.id == request.user.id
 
 
+class IsGardenPhotoOwnerPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        garden = obj.garden_id
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return garden.user_id.id == request.user.id
+
+
 class IsCommentOwnerPermission(permissions.BasePermission):
     def has_comment_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
