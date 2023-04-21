@@ -7,7 +7,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
-
+from cryptography.fernet import Fernet
 from . import serializers
 from .utils import create_user_account, get_and_authenticate_user
 
@@ -48,6 +48,7 @@ class AuthViewSet(viewsets.GenericViewSet):
             "POST",
         ],
         detail=False,
+        permission_classes=[AllowAny,]
     )
     def login(self, request):
         serializer = self.get_serializer(
@@ -126,9 +127,17 @@ class UserViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
 
+        key = Fernet.generate_key()
+        fernet = Fernet(key)
         user = get_object_or_404(self.queryset, pk=pk)
-        serializer = serializers.AuthUserSerializer(user, context={"request": request})
-        return Response(serializer.data)
+        if user is not None:
+            email = user.email
+            encrypted_email = fernet.encrypt(email.encode())
+            serializer = serializers.AuthUserSerializer(
+                user, context={"request": request})
+            data = {"email": encrypted_email}
+            response_data = {**serializer.data, **data}
+        return Response(response_data)
 
     def update(self, request, pk=None):
         user = get_object_or_404(self.queryset, pk=pk)

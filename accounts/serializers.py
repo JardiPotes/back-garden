@@ -35,7 +35,7 @@ class AuthUserSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length=300, required=True, write_only=True)
+    email = serializers.CharField(max_length=300, required=True)
     password = serializers.CharField(
         required=True, write_only=True, trim_whitespace=False
     )
@@ -54,7 +54,8 @@ class UserLoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "email", "password", "auth_token")
-        extra_kwargs = {"email": {"write_only": True}, "password": {"write_only": True}}
+        extra_kwargs = {
+            "password": {"write_only": True}}
 
 
 class EmptySerializer(serializers.Serializer):
