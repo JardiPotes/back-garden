@@ -22,10 +22,9 @@ class Garden(models.Model):
 
 class Photo(models.Model):
     garden_id = models.ForeignKey(Garden, on_delete=models.CASCADE)
-    slug = models.SlugField(verbose_name=str, default="")
     image = models.ImageField(default="", upload_to="apis/images")
-    isMainPhoto = models.BooleanField()
-    season = models.IntegerField()
+    is_main_photo = models.BooleanField()
+    season = models.IntegerField(default=0)
 
 
 class Comment(models.Model):
