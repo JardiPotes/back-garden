@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -5,10 +6,12 @@ from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Comment, Garden, Photo
+from .models import Comment, Conversation, Garden, Message, Photo
 from .permissions import (IsCommentOwnerPermission, IsGardenOwnerPermission,
                           IsGardenPhotoOwnerPermission)
-from .serializers import CommentSerializer, GardenSerializer, PhotoSerializer
+from .serializers import (CommentSerializer, ConversationShowSerializer,
+                          GardenSerializer, ListConversationSerializer,
+                          MessageSerializer, PhotoSerializer)
 
 """ Garden methods """
 
@@ -81,3 +84,22 @@ class CommentViewset(ModelViewSet):
         if receiver_id is not None:
             queryset = self.queryset.filter(receiver_id=receiver_id)
         return queryset
+
+
+class ConversationViewset(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Conversation.objects.all()
+
+    def get_queryset(self):
+        queryset = self.queryset
+        current_user_id = self.request.user.id
+        if current_user_id is not None:
+            queryset = self.queryset.filter(
+                Q(chat_receiver_id=current_user_id) | Q(chat_sender_id=current_user_id)
+            ).order_by("-updated_at")
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return ConversationShowSerializer
+        return ListConversationSerializer

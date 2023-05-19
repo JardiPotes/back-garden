@@ -1,20 +1,20 @@
 import json
 
+from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from accounts.factory import UserFactory
 from accounts.utils import temporary_image
 from apis.factory import GardenFactory, TestHelper
 
-from .models import Comment, Garden, Photo, User
+from .models import Comment, Conversation, Garden, Message, Photo, User
 
 
 class TestCreateGarden(APITestCase):
     def test_can_create_garden_with_valid_attributes(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(
-            user_id=user.id, title="mylene")
+        data = GardenFactory.create_garden_dict(user_id=user.id, title="mylene")
         self.client.force_authenticate(user=user)
 
         response = self.client.post("/api/gardens", data, format="json")
@@ -25,8 +25,7 @@ class TestCreateGarden(APITestCase):
     def test_cannot_create_garden_with_zipcode_too_long(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(
-            user_id=user.id, zipcode="469999")
+        data = GardenFactory.create_garden_dict(user_id=user.id, zipcode="469999")
 
         self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
@@ -61,8 +60,7 @@ class TestCreateGarden(APITestCase):
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
         assert response.status_code == 400
-        assert json_response["user_id"] == [
-            'Invalid pk "4" - object does not exist.']
+        assert json_response["user_id"] == ['Invalid pk "4" - object does not exist.']
 
 
 class TestListGardens(APITestCase):
@@ -175,8 +173,7 @@ class TestLeavingComments(APITestCase):
         user = UserFactory.create_user()
         user2 = UserFactory.create_user()
         self.client.force_authenticate(user=user)
-        data = {"author_id": user.id,
-                "receiver_id": user2.id, "content": "coucou"}
+        data = {"author_id": user.id, "receiver_id": user2.id, "content": "coucou"}
 
         response = self.client.post("/api/comments", data, format="json")
         json_response = json.loads(response.content)
@@ -188,8 +185,7 @@ class TestLeavingComments(APITestCase):
     def test_with_unauthenticated_user_should_fail(self):
         user = UserFactory.create_user()
         user2 = UserFactory.create_user()
-        data = {"author_id": user.id,
-                "receiver_id": user2.id, "content": "Hello"}
+        data = {"author_id": user.id, "receiver_id": user2.id, "content": "Hello"}
 
         response = self.client.post("/api/comments", data, format="json")
         assert response.status_code == 401
@@ -273,7 +269,6 @@ class TestUploadGardenPhotos(APITestCase):
     def test_should_not_allow_non_garden_owner_to_upload_photos(self):
         not_owner = UserFactory.create_user()
         self.client.force_authenticate(user=not_owner)
-        print(self.garden.id, "garden_id")
         data = {"garden_id": self.garden.id, "image": temporary_image()}
         response = self.client.post("/api/photos", data=data)
         assert response.status_code == 403
@@ -291,8 +286,7 @@ class TestListPhotos(APITestCase):
             user_id=User(id=self.user.id), title="toto", zipcode="75001"
         )
 
-        self.user2 = User.objects.create_user(
-            "hola@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user("hola@world.fr", "hekolololololo")
 
         self.garden2 = Garden.objects.create(
             user_id=User(id=self.user2.id), title="toto", zipcode="75001"
@@ -338,8 +332,7 @@ class TestUpdatePhotos(APITestCase):
             user_id=User(id=self.user.id), title="toto", zipcode="75001"
         )
 
-        self.user2 = User.objects.create_user(
-            "hola@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user("hola@world.fr", "hekolololololo")
 
         self.garden2 = Garden.objects.create(
             user_id=User(id=self.user2.id), title="toto", zipcode="75001"
@@ -358,8 +351,7 @@ class TestUpdatePhotos(APITestCase):
         photo_id = photo.id
         is_main_photo = photo.is_main_photo
         season = photo.season
-        data = {"garden_id": self.garden.id,
-                "season": 3, "is_main_photo": True}
+        data = {"garden_id": self.garden.id, "season": 3, "is_main_photo": True}
         response = self.client.put(f"/api/photos/{photo_id}", data=data)
         json_response = json.loads(response.content)
 
@@ -374,7 +366,66 @@ class TestUpdatePhotos(APITestCase):
 
         photo = Photo.objects.get(garden_id=self.garden2.id)
 
-        data = {"garden_id": self.garden2.id,
-                "season": 3, "is_main_photo": True}
+        data = {"garden_id": self.garden2.id, "season": 3, "is_main_photo": True}
         response = self.client.put(f"/api/photos/{photo.id}", data=data)
         assert response.status_code == 403
+
+
+class TestLeavePrivateMessages(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user("hola@world.fr", "hekolololololo")
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2
+        )
+        self.message = Message.objects.create(
+            sender_id=self.user,
+            content="Hello there",
+            conversation_id=self.conversation,
+            sent_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+        self.message2 = Message.objects.create(
+            sender_id=self.user,
+            content="Latest msg",
+            conversation_id=self.conversation,
+            sent_at=timezone.now(),
+        )
+
+    def test_should_return_401_if_not_authenticated(self):
+        response = self.client.get("/api/conversations")
+        assert response.status_code == 401
+
+    def test_should_return_the_latest_message_of_conversation(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/conversations")
+        json_response = json.loads(response.content)
+        assert response.status_code == 200
+        latest_message_list = []
+        for result in json_response["results"]:
+            latest_message = result["latest_message"]["content"]
+            latest_message_list.append(latest_message)
+        assert self.message2.content in latest_message_list
+        assert self.message.content not in latest_message_list
+
+    def test_should_list_all_conversations_with_latest_message(self):
+        self.conversation2 = Conversation.objects.create(
+            chat_sender_id=self.user2, chat_receiver_id=self.user
+        )
+        self.message3 = Message.objects.create(
+            sender_id=self.user2,
+            content="Another msg",
+            conversation_id=self.conversation2,
+        )
+        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/conversations")
+        json_response = json.loads(response.content)
+        latest_message_list = []
+        for result in json_response["results"]:
+            latest_message = result["latest_message"]["content"]
+            latest_message_list.append(latest_message)
+        assert response.status_code == 200
+        assert json_response["count"] == 2
+        assert self.message2.content in latest_message_list
+        assert self.message3.content in latest_message_list
