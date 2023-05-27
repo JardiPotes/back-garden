@@ -45,13 +45,15 @@ class GardenViewset(ModelViewSet):
 
 class PhotoViewset(ModelViewSet):
     serializer_class = PhotoSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsGardenPhotoOwnerPermission]
+    permission_classes = [IsAuthenticatedOrReadOnly,
+                          IsGardenPhotoOwnerPermission]
     parser_classes = (MultiPartParser, FormParser)
     queryset = Photo.objects.all()
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "delete"]:
-            permission_classes = [IsAuthenticated, IsGardenPhotoOwnerPermission]
+            permission_classes = [IsAuthenticated,
+                                  IsGardenPhotoOwnerPermission]
         else:
             permission_classes = [IsAuthenticatedOrReadOnly]
         return [permission() for permission in permission_classes]
@@ -95,7 +97,8 @@ class ConversationViewset(ModelViewSet):
         current_user_id = self.request.user.id
         if current_user_id is not None:
             queryset = self.queryset.filter(
-                Q(chat_receiver_id=current_user_id) | Q(chat_sender_id=current_user_id)
+                Q(chat_receiver_id=current_user_id) | Q(
+                    chat_sender_id=current_user_id)
             ).order_by("-updated_at")
         return queryset
 
@@ -103,3 +106,19 @@ class ConversationViewset(ModelViewSet):
         if self.action == "retrieve":
             return ConversationShowSerializer
         return ListConversationSerializer
+
+
+class MessageViewset(ModelViewSet):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Message.objects.all()
+
+    def perform_create(self, serializer):
+        conversation_id = self.request.data.get("conversation_id")
+        conversation = get_object_or_404(Conversation, id=conversation_id)
+        if self.request.user != conversation.chat_sender_id and self.request.user != conversation.chat_receiver_id:
+            raise PermissionDenied(
+                "You don't have permission to send message to this person."
+            )
+        serializer.save(sender_id=self.request.user,
+                        conversation_id=conversation)

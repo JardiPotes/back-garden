@@ -7,14 +7,15 @@ user = User
 
 
 class Garden(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gardens")
+    user_id = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="gardens")
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=100)
     address = models.TextField()  # todo address
     # todo specific Geo models ? https://pypi.org/project/django-address/
     zipcode = models.CharField(max_length=5)  # TODO: check best practices
-    created_at = models.DateTimeField(default=timezone.now())
-    updated_at = models.DateTimeField(default=timezone.now())
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.title
@@ -35,8 +36,8 @@ class Comment(models.Model):
         User, on_delete=models.CASCADE, related_name="receiver_id"
     )
     content = models.TextField(blank=False, null=False)
-    created_at = models.DateTimeField(default=timezone.now())
-    updated_at = models.DateTimeField(default=timezone.now())
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
 
 class Conversation(models.Model):
@@ -57,7 +58,7 @@ class Message(models.Model):
         User, on_delete=models.CASCADE, related_name="sender_id"
     )
     content = models.TextField(null=False)
-    sent_at = models.DateTimeField(default=timezone.now())
+    sent_at = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
         update_conversation = False

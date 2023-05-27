@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from accounts.models import User
@@ -44,10 +44,24 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ("id", "conversation_id", "sender_id", "content", "sent_at")
+        read_only_fields = ("sent_at",)
+
+    def create(self, validated_data):
+        validated_data["sent_at"] = timezone.now()
+        writable_fields = ["sender_id", "conversation_id", "content"]
+        writable_validated_data = {
+            key: validated_data[key]
+            for key in validated_data
+            if key in writable_fields
+        }
+        instance = super(MessageSerializer, self).create(
+            writable_validated_data)
+        return instance
 
 
 class ListConversationSerializer(serializers.ModelSerializer):
     latest_message = serializers.SerializerMethodField()
+    chat_sender_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
@@ -58,6 +72,9 @@ class ListConversationSerializer(serializers.ModelSerializer):
             "latest_message",
             "updated_at",
         )
+
+    def get_chat_sender_id(self, obj):
+        return obj.chat_sender_id.id
 
     def get_latest_message(self, obj):
         latest_message = Message.objects.filter(conversation_id=obj.id).latest(
