@@ -14,7 +14,8 @@ class TestCreateGarden(APITestCase):
     def test_can_create_garden_with_valid_attributes(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(user_id=user.id, title="mylene")
+        data = GardenFactory.create_garden_dict(
+            user_id=user.id, title="mylene")
         self.client.force_authenticate(user=user)
 
         response = self.client.post("/api/gardens", data, format="json")
@@ -25,7 +26,8 @@ class TestCreateGarden(APITestCase):
     def test_cannot_create_garden_with_zipcode_too_long(self):
 
         user = UserFactory.create_user()
-        data = GardenFactory.create_garden_dict(user_id=user.id, zipcode="469999")
+        data = GardenFactory.create_garden_dict(
+            user_id=user.id, zipcode="469999")
 
         self.client.force_authenticate(user=user)
         response = self.client.post("/api/gardens", data, format="json")
@@ -60,7 +62,8 @@ class TestCreateGarden(APITestCase):
         response = self.client.post("/api/gardens", data, format="json")
         json_response = json.loads(response.content)
         assert response.status_code == 400
-        assert json_response["user_id"] == ['Invalid pk "4" - object does not exist.']
+        assert json_response["user_id"] == [
+            'Invalid pk "4" - object does not exist.']
 
 
 class TestListGardens(APITestCase):
@@ -173,7 +176,8 @@ class TestLeavingComments(APITestCase):
         user = UserFactory.create_user()
         user2 = UserFactory.create_user()
         self.client.force_authenticate(user=user)
-        data = {"author_id": user.id, "receiver_id": user2.id, "content": "coucou"}
+        data = {"author_id": user.id,
+                "receiver_id": user2.id, "content": "coucou"}
 
         response = self.client.post("/api/comments", data, format="json")
         json_response = json.loads(response.content)
@@ -185,7 +189,8 @@ class TestLeavingComments(APITestCase):
     def test_with_unauthenticated_user_should_fail(self):
         user = UserFactory.create_user()
         user2 = UserFactory.create_user()
-        data = {"author_id": user.id, "receiver_id": user2.id, "content": "Hello"}
+        data = {"author_id": user.id,
+                "receiver_id": user2.id, "content": "Hello"}
 
         response = self.client.post("/api/comments", data, format="json")
         assert response.status_code == 401
@@ -286,7 +291,8 @@ class TestListPhotos(APITestCase):
             user_id=User(id=self.user.id), title="toto", zipcode="75001"
         )
 
-        self.user2 = User.objects.create_user("hola@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
 
         self.garden2 = Garden.objects.create(
             user_id=User(id=self.user2.id), title="toto", zipcode="75001"
@@ -332,7 +338,8 @@ class TestUpdatePhotos(APITestCase):
             user_id=User(id=self.user.id), title="toto", zipcode="75001"
         )
 
-        self.user2 = User.objects.create_user("hola@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
 
         self.garden2 = Garden.objects.create(
             user_id=User(id=self.user2.id), title="toto", zipcode="75001"
@@ -351,7 +358,8 @@ class TestUpdatePhotos(APITestCase):
         photo_id = photo.id
         is_main_photo = photo.is_main_photo
         season = photo.season
-        data = {"garden_id": self.garden.id, "season": 3, "is_main_photo": True}
+        data = {"garden_id": self.garden.id,
+                "season": 3, "is_main_photo": True}
         response = self.client.put(f"/api/photos/{photo_id}", data=data)
         json_response = json.loads(response.content)
 
@@ -366,15 +374,17 @@ class TestUpdatePhotos(APITestCase):
 
         photo = Photo.objects.get(garden_id=self.garden2.id)
 
-        data = {"garden_id": self.garden2.id, "season": 3, "is_main_photo": True}
+        data = {"garden_id": self.garden2.id,
+                "season": 3, "is_main_photo": True}
         response = self.client.put(f"/api/photos/{photo.id}", data=data)
         assert response.status_code == 403
 
 
-class TestLeavePrivateMessages(APITestCase):
+class TestListConversationsWithLatestMessage(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
-        self.user2 = User.objects.create_user("hola@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
         self.conversation = Conversation.objects.create(
             chat_sender_id=self.user, chat_receiver_id=self.user2
         )
@@ -429,3 +439,76 @@ class TestLeavePrivateMessages(APITestCase):
         assert json_response["count"] == 2
         assert self.message2.content in latest_message_list
         assert self.message3.content in latest_message_list
+
+
+class TestShowConversationWithAllMessages(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2
+        )
+        self.message = Message.objects.create(
+            sender_id=self.user,
+            content="Hello there",
+            conversation_id=self.conversation,
+            sent_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+        self.message2 = Message.objects.create(
+            sender_id=self.user,
+            content="Latest msg",
+            conversation_id=self.conversation,
+            sent_at=timezone.now(),
+        )
+
+    def test_should_return_401_if_not_authenticated(self):
+        response = self.client.get(
+            f"/api/conversations/{self.conversation.id}")
+        assert response.status_code == 401
+
+    def test_should_return_all_messages_for_the_given_conversation(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            f"/api/conversations/{self.conversation.id}")
+        json_response = json.loads(response.content)
+        member_ids = [json_response["chat_sender_id"],
+                      json_response["chat_receiver_id"]]
+        assert response.status_code == 200
+        assert any(message["content"] ==
+                   self.message.content for message in json_response["messages"])
+        assert any(
+            message["content"] == self.message2.content for message in json_response["messages"])
+        assert json_response["id"] == self.conversation.id
+        assert self.user.id in member_ids
+        assert self.user2.id in member_ids
+
+
+class TestCreatePrivateMessages(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2
+        )
+
+    def test_should_return_401_if_not_authenticated(self):
+        response = self.client.post(
+            "/api/messages")
+        assert response.status_code == 401
+
+    def test_can_post_messages_if_conversation_owner_or_receiver(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.user)
+        data = {"conversation_id": self.conversation.id,
+                "sender_id": self.user.id, "content": "Hello World"}
+        response = self.client.post(
+            "/api/messages", data=data, format="json")
+        json_response = json.loads(response.content)
+        assert response.status_code == 201
+        assert json_response["conversation_id"] == data["conversation_id"]
+        assert json_response["content"] == data["content"]
+        assert json_response["sender_id"] == data["sender_id"]
+        assert json_response["sent_at"] is not None
