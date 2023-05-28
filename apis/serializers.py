@@ -50,12 +50,9 @@ class MessageSerializer(serializers.ModelSerializer):
         validated_data["sent_at"] = timezone.now()
         writable_fields = ["sender_id", "conversation_id", "content"]
         writable_validated_data = {
-            key: validated_data[key]
-            for key in validated_data
-            if key in writable_fields
+            key: validated_data[key] for key in validated_data if key in writable_fields
         }
-        instance = super(MessageSerializer, self).create(
-            writable_validated_data)
+        instance = super(MessageSerializer, self).create(writable_validated_data)
         return instance
 
 
@@ -90,3 +87,9 @@ class ConversationShowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
         fields = ("id", "chat_sender_id", "chat_receiver_id", "messages")
+
+
+class ConversationPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Conversation
+        fields = ("id", "chat_sender_id", "chat_receiver_id", "updated_at")
