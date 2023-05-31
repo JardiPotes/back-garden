@@ -409,7 +409,14 @@ class TestListConversationsWithLatestMessage(APITestCase):
         self.user3 = User.objects.create_user(
             "test@test.test", "testingtesting")
         self.client.force_authenticate(user=self.user3)
-        response = self.client.get("/api/conversations")
+        response = self.client.get(
+            f"/api/conversations?current_user_id={self.user3.id}")
+        assert response.status_code == 403
+
+    def test_should_return_403_if_the_query_param_is_not_provided(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            "/api/conversations")
         assert response.status_code == 403
 
     def test_should_return_the_latest_message_of_conversation(self):
@@ -551,6 +558,18 @@ class TestCreateConversation(APITestCase):
         assert response.status_code == 201
         assert json_response["chat_sender_id"] == self.user.id
         assert json_response["chat_receiver_id"] == data["chat_receiver_id"]
+
+    def test_should_return_400_if_conversation_between_two_users_already_exists(self):
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2)
+        self.client.force_authenticate(user=self.user)
+        data = {"chat_sender_id": self.user.id,
+                "chat_receiver_id": self.user2.id}
+        response = self.client.post(
+            "/api/conversations", data=data, format="json")
+        json_response = json.loads(response.content)
+        assert response.status_code == 400
+        assert "Conversation already exists between these two users" in json_response
 
 
 class TestCreatePrivateMessages(APITestCase):

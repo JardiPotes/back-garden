@@ -111,13 +111,21 @@ class ConversationViewset(ModelViewSet):
             except User.DoesNotExist:
                 raise ValidationError(
                     "User with the specified ID does not exist.")
-
+        else:
+            queryset = queryset.none()
         return queryset
 
     def perform_create(self, serializer):
         chat_sender = self.request.user
         chat_receiver_id = self.request.data.get("chat_receiver_id")
         chat_receiver = get_user_model().objects.get(id=chat_receiver_id)
+        conversation_exists = Conversation.objects.filter(Q(chat_sender_id=chat_sender, chat_receiver_id=chat_receiver) | Q(
+            chat_sender_id=chat_receiver, chat_receiver_id=chat_sender)).exists()
+
+        if conversation_exists:
+            raise ValidationError(
+                "Conversation already exists between these two users")
+
         serializer.save(chat_sender_id=chat_sender,
                         chat_receiver_id=chat_receiver)
 
