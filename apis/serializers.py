@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from accounts.models import User
@@ -52,7 +53,8 @@ class MessageSerializer(serializers.ModelSerializer):
         writable_validated_data = {
             key: validated_data[key] for key in validated_data if key in writable_fields
         }
-        instance = super(MessageSerializer, self).create(writable_validated_data)
+        instance = super(MessageSerializer, self).create(
+            writable_validated_data)
         return instance
 
 
@@ -74,19 +76,30 @@ class ListConversationSerializer(serializers.ModelSerializer):
         return obj.chat_sender_id.id
 
     def get_latest_message(self, obj):
-        latest_message = Message.objects.filter(conversation_id=obj.id).latest(
-            "sent_at"
-        )
-        serializer = MessageSerializer(latest_message)
-        return serializer.data
+        try:
+            latest_message = Message.objects.filter(conversation_id=obj.id).latest(
+                "sent_at"
+            )
+            serializer = MessageSerializer(latest_message)
+            return serializer.data
+        except ObjectDoesNotExist:
+            return {}
 
 
 class ConversationShowSerializer(serializers.ModelSerializer):
-    messages = MessageSerializer(many=True, source="conversation_id")
+    messages = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
         fields = ("id", "chat_sender_id", "chat_receiver_id", "messages")
+
+    def get_messages(self, obj):
+        messages = Message.objects.filter(conversation_id=obj.id)
+        if messages.exists():
+            serializer = MessageSerializer(messages, many=True)
+            return serializer.data
+        else:
+            return []
 
 
 class ConversationPostSerializer(serializers.ModelSerializer):

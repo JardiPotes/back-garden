@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from .models import User
 
 
 class IsGardenOwnerPermission(permissions.BasePermission):
@@ -25,13 +26,18 @@ class IsCommentOwnerPermission(permissions.BasePermission):
 
 class IsConversationMembersPermission(permissions.BasePermission):
     def has_permission(self, request, view):
+        current_user_id = request.query_params.get('current_user_id', None)
+
+        if current_user_id:
+            try:
+                User.objects.get(id=current_user_id)
+            except User.DoesNotExist:
+                return False
+
         if request.method != "POST":
             queryset = view.get_queryset()
-            return any(
-                conversation.chat_sender_id == request.user
-                or conversation.chat_receiver_id == request.user
-                for conversation in queryset
-            )
+            return any(conversation.chat_sender_id == request.user or conversation.chat_receiver_id == request.user for conversation in queryset)
+
         return True
 
 
