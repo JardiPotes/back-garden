@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from .models import User
+from .models import User, Message
 
 
 class IsGardenOwnerPermission(permissions.BasePermission):
@@ -44,7 +44,10 @@ class IsConversationMembersPermission(permissions.BasePermission):
 class IsConversationParticipant(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
-        conversation = obj.conversation
+        if isinstance(obj, Message):
+            conversation = obj.conversation_id
+        else:
+            conversation = obj.conversation
         return (
             conversation.chat_sender_id == user or conversation.chat_receiver_id == user
         )

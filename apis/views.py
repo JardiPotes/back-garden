@@ -120,11 +120,11 @@ class ConversationViewset(ModelViewSet):
         chat_receiver_id = self.request.data.get("chat_receiver_id")
         chat_receiver = get_user_model().objects.get(id=chat_receiver_id)
         conversation_exists = Conversation.objects.filter(Q(chat_sender_id=chat_sender, chat_receiver_id=chat_receiver) | Q(
-            chat_sender_id=chat_receiver, chat_receiver_id=chat_sender)).exists()
+            chat_sender_id=chat_receiver, chat_receiver_id=chat_sender)).first()
 
         if conversation_exists:
-            raise ValidationError(
-                "Conversation already exists between these two users")
+            raise ValidationError({
+                "error": "Conversation already exists between these two users", "conversation_id": conversation_exists.id})
 
         serializer.save(chat_sender_id=chat_sender,
                         chat_receiver_id=chat_receiver)

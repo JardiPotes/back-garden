@@ -44,8 +44,8 @@ class CommentSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ("id", "conversation_id", "sender_id", "content", "sent_at")
-        read_only_fields = ("sent_at",)
+        fields = ("id", "conversation_id", "content", "sender_id", "sent_at")
+        read_only_fields = ("id", "sender_id", "sent_at")
 
     def create(self, validated_data):
         validated_data["sent_at"] = timezone.now()

@@ -559,7 +559,7 @@ class TestCreateConversation(APITestCase):
         assert json_response["chat_sender_id"] == self.user.id
         assert json_response["chat_receiver_id"] == data["chat_receiver_id"]
 
-    def test_should_return_400_if_conversation_between_two_users_already_exists(self):
+    def test_should_return_400_and_conversation_id_if_conversation_between_two_users_already_exists(self):
         self.conversation = Conversation.objects.create(
             chat_sender_id=self.user, chat_receiver_id=self.user2)
         self.client.force_authenticate(user=self.user)
@@ -569,7 +569,8 @@ class TestCreateConversation(APITestCase):
             "/api/conversations", data=data, format="json")
         json_response = json.loads(response.content)
         assert response.status_code == 400
-        assert "Conversation already exists between these two users" in json_response
+        assert json_response["error"] == "Conversation already exists between these two users"
+        assert json_response["conversation_id"] == str(self.conversation.id)
 
 
 class TestCreatePrivateMessages(APITestCase):
@@ -590,7 +591,6 @@ class TestCreatePrivateMessages(APITestCase):
         self.client.force_authenticate(user=self.user3)
         data = {
             "conversation_id": self.conversation.id,
-            "sender_id": self.user3.id,
             "content": "I can't send anything.",
         }
         response = self.client.post("/api/messages", data=data, format="json")
@@ -598,10 +598,8 @@ class TestCreatePrivateMessages(APITestCase):
 
     def test_can_post_messages_if_conversation_owner_or_receiver(self):
         self.client.force_authenticate(user=self.user)
-        self.client.force_authenticate(user=self.user)
         data = {
             "conversation_id": self.conversation.id,
-            "sender_id": self.user.id,
             "content": "Hello World",
         }
         response = self.client.post("/api/messages", data=data, format="json")
@@ -609,5 +607,5 @@ class TestCreatePrivateMessages(APITestCase):
         assert response.status_code == 201
         assert json_response["conversation_id"] == data["conversation_id"]
         assert json_response["content"] == data["content"]
-        assert json_response["sender_id"] == data["sender_id"]
+        assert json_response["sender_id"] == self.user.id
         assert json_response["sent_at"] is not None
