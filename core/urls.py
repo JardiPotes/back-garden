@@ -7,7 +7,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 
 from accounts.views import AuthViewSet, UserViewSet
-from apis.views import CommentViewset, GardenViewset, PhotoViewset
+from apis.views import (CommentViewset, ConversationViewset, GardenViewset,
+                        MessageViewset, PhotoViewset)
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -21,6 +22,8 @@ schema_view = get_schema_view(
 router = routers.SimpleRouter(trailing_slash=False)
 # Puis lui déclarons une url basée sur le mot clé ‘category’ et notre view
 # afin que l’url générée soit celle que nous souhaitons ‘/api/category/’
+router.register(r"api/messages", MessageViewset, basename="messages")
+router.register(r"api/conversations", ConversationViewset, basename="conversations")
 router.register(r"api/comments", CommentViewset, basename="comments")
 router.register(r"api/gardens", GardenViewset, basename="gardens")
 router.register(r"api/photos", PhotoViewset, basename="photos")

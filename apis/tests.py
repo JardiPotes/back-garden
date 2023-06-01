@@ -1,12 +1,13 @@
 import json
 
+from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from accounts.factory import UserFactory
 from accounts.utils import temporary_image
 from apis.factory import GardenFactory, TestHelper
 
-from .models import Comment, Garden, Photo, User
+from .models import Comment, Conversation, Garden, Message, Photo, User
 
 
 class TestCreateGarden(APITestCase):
@@ -273,7 +274,6 @@ class TestUploadGardenPhotos(APITestCase):
     def test_should_not_allow_non_garden_owner_to_upload_photos(self):
         not_owner = UserFactory.create_user()
         self.client.force_authenticate(user=not_owner)
-        print(self.garden.id, "garden_id")
         data = {"garden_id": self.garden.id, "image": temporary_image()}
         response = self.client.post("/api/photos", data=data)
         assert response.status_code == 403
@@ -378,3 +378,234 @@ class TestUpdatePhotos(APITestCase):
                 "season": 3, "is_main_photo": True}
         response = self.client.put(f"/api/photos/{photo.id}", data=data)
         assert response.status_code == 403
+
+
+class TestListConversationsWithLatestMessage(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2
+        )
+        self.message = Message.objects.create(
+            sender_id=self.user,
+            content="Hello there",
+            conversation_id=self.conversation,
+            sent_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+        self.message2 = Message.objects.create(
+            sender_id=self.user,
+            content="Latest msg",
+            conversation_id=self.conversation,
+            sent_at=timezone.now(),
+        )
+
+    def test_should_return_401_if_not_authenticated(self):
+        response = self.client.get("/api/conversations")
+        assert response.status_code == 401
+
+    def test_should_return_403_if_not_part_of_the_conversation(self):
+        self.user3 = User.objects.create_user(
+            "test@test.test", "testingtesting")
+        self.client.force_authenticate(user=self.user3)
+        response = self.client.get(
+            f"/api/conversations?current_user_id={self.user3.id}")
+        assert response.status_code == 403
+
+    def test_should_return_403_if_the_query_param_is_not_provided(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            "/api/conversations")
+        assert response.status_code == 403
+
+    def test_should_return_the_latest_message_of_conversation(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            f"/api/conversations?current_user_id={self.user.id}")
+        json_response = json.loads(response.content)
+        assert response.status_code == 200
+        latest_message_list = []
+        for result in json_response["results"]:
+            latest_message = result["latest_message"]["content"]
+            latest_message_list.append(latest_message)
+        assert self.message2.content in latest_message_list
+        assert self.message.content not in latest_message_list
+
+    def test_should_list_all_conversations_with_latest_message_for_the_given_user(self):
+        self.conversation2 = Conversation.objects.create(
+            chat_sender_id=self.user2, chat_receiver_id=self.user
+        )
+        self.message3 = Message.objects.create(
+            sender_id=self.user2,
+            content="Another msg",
+            conversation_id=self.conversation2,
+        )
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            f"/api/conversations?current_user_id={self.user.id}")
+        json_response = json.loads(response.content)
+        latest_message_list = []
+        for result in json_response["results"]:
+            latest_message = result["latest_message"]["content"]
+            latest_message_list.append(latest_message)
+        assert response.status_code == 200
+        assert json_response["count"] == 2
+        assert self.message2.content in latest_message_list
+        assert self.message3.content in latest_message_list
+
+    def test_should_return_empty_object_if_no_latest_message(self):
+        self.conversation2 = Conversation.objects.create(
+            chat_sender_id=self.user2, chat_receiver_id=self.user)
+        self.client.force_authenticate(user=self.user2)
+        response = self.client.get(
+            f"/api/conversations?current_user_id={self.user2.id}")
+        json_response = json.loads(response.content)
+        latest_messages = [
+            item["latest_message"] for item in json_response["results"]]
+        assert {} in latest_messages
+
+
+class TestShowConversationWithAllMessages(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2
+        )
+        self.message = Message.objects.create(
+            sender_id=self.user,
+            content="Hello there",
+            conversation_id=self.conversation,
+            sent_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+        self.message2 = Message.objects.create(
+            sender_id=self.user,
+            content="Latest msg",
+            conversation_id=self.conversation,
+            sent_at=timezone.now(),
+        )
+
+    def test_should_return_401_if_not_authenticated(self):
+        response = self.client.get(
+            f"/api/conversations/{self.conversation.id}")
+        assert response.status_code == 401
+
+    def test_should_return_403_if_not_part_of_the_conversation(self):
+        self.user3 = User.objects.create_user(
+            "test@test.test", "testingtesting")
+        self.client.force_authenticate(user=self.user3)
+        response = self.client.get(
+            f"/api/conversations/{self.conversation.id}")
+        assert response.status_code == 403
+
+    def test_should_return_all_messages_for_the_given_conversation(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            f"/api/conversations/{self.conversation.id}?current_user_id={self.user.id}")
+        json_response = json.loads(response.content)
+        print(json_response)
+        member_ids = [
+            json_response["chat_sender_id"],
+            json_response["chat_receiver_id"],
+        ]
+        assert response.status_code == 200
+        assert any(
+            message["content"] == self.message.content
+            for message in json_response["messages"]
+        )
+        assert any(
+            message["content"] == self.message2.content
+            for message in json_response["messages"]
+        )
+        assert json_response["id"] == self.conversation.id
+        assert self.user.id in member_ids
+        assert self.user2.id in member_ids
+
+    def test_should_return_empty_list_if_no_messages_for_the_given_conversation(self):
+        self.user3 = User.objects.create_user(
+            "testing@test.test", "testingfoobar")
+        self.conversation2 = Conversation.objects.create(
+            chat_sender_id=self.user3, chat_receiver_id=self.user)
+        self.client.force_authenticate(user=self.user3)
+        response = self.client.get(
+            f"/api/conversations/{self.conversation2.id}?current_user_id={self.user3.id}")
+        json_response = json.loads(response.content)
+        assert json_response["messages"] == []
+
+
+class TestCreateConversation(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
+
+    def test_should_return_401_if_not_authenticated(self):
+        data = {"chat_sender_id": self.user.id,
+                "chat_receiver_id": self.user2.id}
+        response = self.client.post(
+            "/api/conversations", data=data, format="json")
+        assert response.status_code == 401
+
+    def test_should_create_a_conversation_if_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        data = {"chat_sender_id": self.user.id,
+                "chat_receiver_id": self.user2.id}
+        response = self.client.post(
+            "/api/conversations", data=data, format="json")
+        json_response = json.loads(response.content)
+        assert response.status_code == 201
+        assert json_response["chat_sender_id"] == self.user.id
+        assert json_response["chat_receiver_id"] == data["chat_receiver_id"]
+
+    def test_should_return_400_and_conversation_id_if_conversation_between_two_users_already_exists(self):
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2)
+        self.client.force_authenticate(user=self.user)
+        data = {"chat_sender_id": self.user.id,
+                "chat_receiver_id": self.user2.id}
+        response = self.client.post(
+            "/api/conversations", data=data, format="json")
+        json_response = json.loads(response.content)
+        assert response.status_code == 400
+        assert json_response["error"] == "Conversation already exists between these two users"
+        assert json_response["conversation_id"] == str(self.conversation.id)
+
+
+class TestCreatePrivateMessages(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("hey@world.fr", "hekolololololo")
+        self.user2 = User.objects.create_user(
+            "hola@world.fr", "hekolololololo")
+        self.conversation = Conversation.objects.create(
+            chat_sender_id=self.user, chat_receiver_id=self.user2
+        )
+
+    def test_should_return_401_if_not_authenticated(self):
+        response = self.client.post("/api/messages")
+        assert response.status_code == 401
+
+    def test_should_return_403_if_not_part_of_conversation(self):
+        self.user3 = User.objects.create_user("hola@hola.es", "holaholahola")
+        self.client.force_authenticate(user=self.user3)
+        data = {
+            "conversation_id": self.conversation.id,
+            "content": "I can't send anything.",
+        }
+        response = self.client.post("/api/messages", data=data, format="json")
+        assert response.status_code == 403
+
+    def test_can_post_messages_if_conversation_owner_or_receiver(self):
+        self.client.force_authenticate(user=self.user)
+        data = {
+            "conversation_id": self.conversation.id,
+            "content": "Hello World",
+        }
+        response = self.client.post("/api/messages", data=data, format="json")
+        json_response = json.loads(response.content)
+        assert response.status_code == 201
+        assert json_response["conversation_id"] == data["conversation_id"]
+        assert json_response["content"] == data["content"]
+        assert json_response["sender_id"] == self.user.id
+        assert json_response["sent_at"] is not None
