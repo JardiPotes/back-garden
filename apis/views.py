@@ -48,6 +48,12 @@ class GardenViewset(ModelViewSet):
             queryset = self.queryset.filter(zipcode=zipcode)
         return queryset
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+
+        return context
+
 
 class PhotoViewset(ModelViewSet):
     serializer_class = PhotoSerializer

@@ -1,3 +1,5 @@
+import os
+
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
@@ -13,16 +15,35 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("id", "experience", "profile_image", "nickname")
 
 
-class GardenSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Garden
-        fields = ("id", "user_id", "title", "description", "zipcode")
-
-
 class PhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Photo
         fields = ("id", "garden_id", "image", "is_main_photo", "season")
+
+
+class GardenSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Garden
+        fields = ("id", "user_id", "title", "description", "zipcode", "image")
+        read_only_fields = ("image",)
+
+    def get_image(self, obj):
+        try:
+            image = Photo.objects.filter(garden_id=obj).first()
+            if image and image.image:
+                image_url = image.image.url
+                image_path = image.image.path
+                request = self.context.get("request")
+                if request and os.path.exists(image_path):
+                    host_url = request.build_absolute_uri("/")
+                    return f"{host_url}{image_url}"
+                return None
+            else:
+                return None
+        except ObjectDoesNotExist:
+            return None
 
 
 class CommentSerializer(serializers.ModelSerializer):
