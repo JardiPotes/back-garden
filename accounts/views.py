@@ -142,3 +142,9 @@ class UserViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             raise ValidationError("You can only edit your own profile.")
+
+    def delete(self, request, pk=None):
+        user = get_object_or_404(self.queryset, pk=pk)
+        if user:
+            user.delete()
+        return Response(status=status.HTTP_200_OK)
