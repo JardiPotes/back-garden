@@ -112,7 +112,7 @@ class UserViewSet(viewsets.ViewSet):
     queryset = User.objects.all()
 
     def get_permissions(self):
-        if self.action == "update":
+        if self.action == "update" or self.action == "delete":
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [AllowAny]
