@@ -173,9 +173,8 @@ class TestGetUserDetail(APITestCase):
         response = self.client.get(f"/api/users/{self.user.id}")
         json_response = json.loads(response.content)
         print(response.content)
-        receiver_id_list = []
-        for res in json_response["comments"]:
-            receiver_id_list.append(res["receiver_id"])
+        receiver_id_list = [res["receiver_id"]
+                            for res in json_response["comments"]]
         assert response.status_code == 200
         assert self.user.id in receiver_id_list
 
