@@ -12,7 +12,13 @@ class GardenFactory:
         address: str = "chez Isciane",
         zipcode: str = "75000",
     ):
-        return locals()
+        return {
+            "user_id": user_id,
+            "title": title,
+            "description": description,
+            "address": address,
+            "zipcode": zipcode
+        }
 
     def create_garden(**kwargs):
         return Garden.objects.create(**GardenFactory.create_garden_dict(**kwargs))

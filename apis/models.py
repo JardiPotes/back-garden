@@ -7,12 +7,12 @@ user = User
 
 
 class Garden(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gardens")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="gardens")
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=100)
-    address = models.TextField()  # todo address
-    # todo specific Geo models ? https://pypi.org/project/django-address/
-    zipcode = models.CharField(max_length=5)  # TODO: check best practices
+    address = models.TextField()
+    zipcode = models.CharField(max_length=5)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -21,18 +21,18 @@ class Garden(models.Model):
 
 
 class Photo(models.Model):
-    garden_id = models.ForeignKey(Garden, on_delete=models.CASCADE)
+    garden = models.ForeignKey(Garden, on_delete=models.CASCADE)
     image = models.ImageField(default="", upload_to="apis/images")
     is_main_photo = models.BooleanField()
     season = models.IntegerField(default=0)
 
 
 class Comment(models.Model):
-    author_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="author_id"
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="sender_comments"
     )
-    receiver_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="receiver_id"
+    receiver = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="receiver_comments"
     )
     content = models.TextField(blank=False, null=False)
     created_at = models.DateTimeField(default=timezone.now)
@@ -40,21 +40,21 @@ class Comment(models.Model):
 
 
 class Conversation(models.Model):
-    chat_sender_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="chat_sender_id"
+    chat_sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="chat_sender"
     )
-    chat_receiver_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="chat_receiver_id"
+    chat_receiver = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="chat_receiver"
     )
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class Message(models.Model):
-    conversation_id = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="conversation_id"
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name="messages"
     )
-    sender_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="sender_id"
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="sender_messages"
     )
     content = models.TextField(null=False)
     sent_at = models.DateTimeField(default=timezone.now)
@@ -71,6 +71,6 @@ class Message(models.Model):
         super().save(*args, **kwargs)
 
         if update_conversation:
-            conversation = self.conversation_id
+            conversation = self.conversation
             conversation.updated_at = timezone.now()
             conversation.save()

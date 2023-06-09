@@ -1,5 +1,6 @@
 import os
 
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
@@ -10,6 +11,7 @@ from .models import Comment, Conversation, Garden, Message, Photo
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ("id", "experience", "profile_image", "nickname")
@@ -23,11 +25,17 @@ class PhotoSerializer(serializers.ModelSerializer):
 
 class GardenSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField()
 
     class Meta:
         model = Garden
-        fields = ("id", "user_id", "title", "description", "zipcode", "image")
+        fields = ("id", "user_id", "title", "description",
+                  "zipcode", "image", "address")
         read_only_fields = ("image",)
+        write_only_fields = ("address",)
+        extra_kwargs = {
+            "address": {"write_only": True, "required": False},
+        }
 
     def get_image(self, obj):
         try:
@@ -45,9 +53,22 @@ class GardenSerializer(serializers.ModelSerializer):
         except ObjectDoesNotExist:
             return None
 
+    def create(self, validated_data):
+        user_id = validated_data.pop("user_id", None)
+        if user_id is not None:
+            user = get_object_or_404(User, pk=user_id)
+            validated_data["user"] = user
+        return super().create(validated_data)
+
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = UserSerializer(required=False, source="author_id")
+    created_at = serializers.DateTimeField(
+        read_only=True, default=timezone.now)
+    updated_at = serializers.DateTimeField(
+        read_only=True, default=timezone.now)
+    receiver_id = serializers.IntegerField()
+    author_id = serializers.IntegerField()
+    author = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -60,6 +81,28 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+    def create(self, validated_data):
+        author_id = validated_data.pop("author_id", None)
+        receiver_id = validated_data.pop("receiver_id")
+
+        if author_id is not None:
+            author = get_object_or_404(User, pk=author_id)
+            validated_data["author_id"] = author.id
+
+        receiver = get_object_or_404(User, pk=receiver_id)
+        validated_data["receiver"] = receiver
+
+        return super().create(validated_data)
+
+    def get_author(self, obj):
+        try:
+            author = get_object_or_404(User, pk=obj.author_id)
+            serializer = UserSerializer(
+                author, context={"request": self.context.get("request")})
+            return serializer.data
+        except ObjectDoesNotExist:
+            return {}
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -94,7 +137,7 @@ class ListConversationSerializer(serializers.ModelSerializer):
         )
 
     def get_chat_sender_id(self, obj):
-        return obj.chat_sender_id.id
+        return obj.chat_sender_id
 
     def get_latest_message(self, obj):
         try:

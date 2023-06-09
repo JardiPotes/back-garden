@@ -17,21 +17,24 @@ class TestRegisterUser(APITestCase):
 
     def test_can_create_account(self):
         data = UserFactory.create_user_dict(email="hellothere@test.test")
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         assert response.status_code == 201
         assert User.objects.count() == 2
         assert User.objects.get(email="hellothere@test.test")
 
     def test_should_accept_experience_from_one_to_five_on_creation(self):
         data = UserFactory.create_user_dict(experience=5)
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         json_response = json.loads(response.content)
         assert response.status_code == 201
         assert json_response["experience"] == 5
 
     def test_cannot_create_account_with_experience_greater_than_five(self):
         data = UserFactory.create_user_dict(experience=10)
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         json_response = json.loads(response.content)
         assert response.status_code == 400
         assert json_response["experience"] == [
@@ -40,7 +43,8 @@ class TestRegisterUser(APITestCase):
 
     def test_cannot_create_account_with_experience_less_than_one(self):
         data = UserFactory.create_user_dict(experience=0)
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         json_response = json.loads(response.content)
         assert response.status_code == 400
         assert json_response["experience"] == [
@@ -49,21 +53,24 @@ class TestRegisterUser(APITestCase):
 
     def test_cannot_create_account_with_experience_set_as_decimal(self):
         data = UserFactory.create_user_dict(experience=1.3)
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         json_response = json.loads(response.content)
         assert response.status_code == 400
         assert json_response["experience"] == ["A valid integer is required."]
 
     def test_cannot_create_account_with_invalid_email(self):
         data = UserFactory.create_user_dict(email="lol.l")
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         json_response = json.loads(response.content)
         assert response.status_code == 400
         assert json_response["email"] == ["Enter a valid email address."]
 
     def test_cannot_create_user_with_already_existed_email(self):
         data = UserFactory.create_user_dict(email="john@snow.com")
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         json_response = json.loads(response.content)
 
         assert response.status_code == 400
@@ -73,7 +80,8 @@ class TestRegisterUser(APITestCase):
 
     def test_cannot_create_user_with_password_less_than_8_chars(self):
         data = UserFactory.create_user_dict(password="123")
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         json_response = json.loads(response.content)
         assert response.status_code == 400
         assert json_response["password"] == [
@@ -84,7 +92,8 @@ class TestRegisterUser(APITestCase):
 
     def test_should_accept_uploaded_images_on_creation(self):
         data = UserFactory.create_user_dict(profile_image=temporary_image())
-        response = self.client.post("/api/auth/register", data, format="multipart")
+        response = self.client.post(
+            "/api/auth/register", data, format="multipart")
         assert response.status_code == 201
 
 
@@ -157,12 +166,13 @@ class TestGetUserDetail(APITestCase):
 
     def test_should_fetch_user_received_comments_on_user_show(self):
         Comment.objects.create(
-            author_id=User(id=self.user2.id),
-            receiver_id=User(id=self.user.id),
+            author_id=str(self.user2.id),
+            receiver_id=str(self.user.id),
             content="FooBar",
         )
         response = self.client.get(f"/api/users/{self.user.id}")
         json_response = json.loads(response.content)
+        print(response.content)
         receiver_id_list = []
         for res in json_response["comments"]:
             receiver_id_list.append(res["receiver_id"])
@@ -196,7 +206,8 @@ class TestUpdateUser(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         data = {"bio": "barfoo"}
-        response = self.client.put(f"/api/users/{self.user.id}", data, format="json")
+        response = self.client.put(
+            f"/api/users/{self.user.id}", data, format="json")
         json_response = json.loads(response.content)
         assert response.status_code == 200
         assert json_response["bio"] == "barfoo"
