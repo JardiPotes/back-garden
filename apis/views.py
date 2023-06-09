@@ -19,10 +19,6 @@ from .serializers import (CommentSerializer, ConversationPostSerializer,
                           ListConversationSerializer, MessageSerializer,
                           PhotoSerializer)
 
-""" Garden methods """
-
-""" GardenViewset includes GET/POST/PUT/DELETE methods with or without params """
-
 
 class GardenViewset(ModelViewSet):
 
@@ -80,11 +76,11 @@ class PhotoViewset(ModelViewSet):
     def perform_create(self, serializer):
         garden_id = self.request.data.get("garden_id")
         garden = get_object_or_404(Garden, id=garden_id)
-        if garden.user_id.id != self.request.user.id:
+        if garden.user.id != self.request.user.id:
             raise PermissionDenied(
                 "You don't have permission to add photos to this garden."
             )
-        serializer.save(garden_id=garden)
+        serializer.save(garden=garden)
 
 
 class CommentViewset(ModelViewSet):
@@ -98,6 +94,9 @@ class CommentViewset(ModelViewSet):
         if receiver_id is not None:
             queryset = self.queryset.filter(receiver_id=receiver_id)
         return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(author_id=self.request.user.id)
 
 
 class ConversationViewset(ModelViewSet):
@@ -122,18 +121,18 @@ class ConversationViewset(ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        chat_sender = self.request.user
+        chat_sender_id = self.request.user.id
         chat_receiver_id = self.request.data.get("chat_receiver_id")
         chat_receiver = get_user_model().objects.get(id=chat_receiver_id)
-        conversation_exists = Conversation.objects.filter(Q(chat_sender_id=chat_sender, chat_receiver_id=chat_receiver) | Q(
-            chat_sender_id=chat_receiver, chat_receiver_id=chat_sender)).first()
+        conversation_exists = Conversation.objects.filter(Q(chat_sender_id=chat_sender_id, chat_receiver_id=chat_receiver.id) | Q(
+            chat_sender_id=chat_receiver.id, chat_receiver_id=chat_sender_id)).first()
 
         if conversation_exists:
             raise ValidationError({
                 "error": "Conversation already exists between these two users", "conversation_id": conversation_exists.id})
 
-        serializer.save(chat_sender_id=chat_sender,
-                        chat_receiver_id=chat_receiver)
+        serializer.save(chat_sender_id=chat_sender_id,
+                        chat_receiver_id=chat_receiver.id)
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -152,11 +151,11 @@ class MessageViewset(ModelViewSet):
         conversation_id = self.request.data.get("conversation_id")
         conversation = get_object_or_404(Conversation, id=conversation_id)
         if (
-            self.request.user != conversation.chat_sender_id
-            and self.request.user != conversation.chat_receiver_id
+            self.request.user.id != conversation.chat_sender_id
+            and self.request.user.id != conversation.chat_receiver_id
         ):
             raise PermissionDenied(
                 "You don't have permission to send message to this person."
             )
-        serializer.save(sender_id=self.request.user,
-                        conversation_id=conversation)
+        serializer.save(sender_id=self.request.user.id,
+                        conversation_id=conversation.id)

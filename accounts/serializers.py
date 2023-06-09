@@ -10,16 +10,10 @@ User = get_user_model()
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
-    def get_profile_image(self, user):
-        request = self.context.get("request")
-        if user.profile_image.url:
-            request.build_absolute_uri(user.profile_image.url)
-        else:
-            default_profile_image_url = "accounts/images/default_profile_image.png"
-            return request.build_absolute_uri(default_profile_image_url)
 
     gardens = GardenSerializer(many=True, required=False)
-    comments = CommentSerializer(many=True, required=False, source="receiver_id")
+    comments = CommentSerializer(
+        many=True, required=False, source="receiver_comments")
 
     class Meta:
         model = User
@@ -33,9 +27,18 @@ class AuthUserSerializer(serializers.ModelSerializer):
             "comments",
         )
 
+    def get_profile_image(self, user):
+        request = self.context.get("request")
+        if user.profile_image.url:
+            request.build_absolute_uri(user.profile_image.url)
+        else:
+            default_profile_image_url = "accounts/images/default_profile_image.png"
+            return request.build_absolute_uri(default_profile_image_url)
+
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length=300, required=True, write_only=True)
+    email = serializers.CharField(
+        max_length=300, required=True, write_only=True)
     password = serializers.CharField(
         required=True, write_only=True, trim_whitespace=False
     )
@@ -54,7 +57,8 @@ class UserLoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "email", "password", "auth_token")
-        extra_kwargs = {"email": {"write_only": True}, "password": {"write_only": True}}
+        extra_kwargs = {"email": {"write_only": True},
+                        "password": {"write_only": True}}
 
 
 class EmptySerializer(serializers.Serializer):
@@ -112,7 +116,8 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate_current_password(self, value):
         if not self.context["request"].user.check_password(value):
-            raise serializers.ValidationError("Current password does not match")
+            raise serializers.ValidationError(
+                "Current password does not match")
         return value
 
     def validate_new_password(self, value):
