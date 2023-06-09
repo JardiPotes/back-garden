@@ -90,7 +90,7 @@ class PhotoViewset(ModelViewSet):
 class CommentViewset(ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsCommentOwnerPermission]
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.all().order_by("-created_at")
 
     def get_queryset(self):
         queryset = self.queryset
