@@ -66,10 +66,10 @@ class TestCreateGarden(APITestCase):
 class TestListGardens(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            "hello@world", "hello_world_123", has_garden=True
+            "hello@world", "hello_world_123", nickname="foo"
         )
         self.user2 = User.objects.create_user(
-            "hey@world.fr", "hekolololololo", has_garden=True
+            "hey@world.fr", "hekolololololo", nickname="bar"
         )
         self.garden = Garden.objects.create(
             user_id=self.user.id, title="toto", zipcode="75001"
@@ -84,23 +84,34 @@ class TestListGardens(APITestCase):
     def test_should_list_all_gardens(self):
         response = self.client.get("/api/gardens")
         json_response = json.loads(response.content)
-        res_list = []
-        for res in json_response["results"]:
-            res_list.append(res["user_id"])
+        res_list = [res["user_id"] for res in json_response["results"]]
+
         assert response.status_code == 200
         assert json_response["count"] == 3
         assert self.user.id in res_list
         assert self.user2.id in res_list
 
+    def test_should_list_all_gardens_with_user_info(self):
+        response = self.client.get("/api/gardens")
+        json_response = json.loads(response.content)
+        res_list = [res["user_id"] for res in json_response["results"]]
+        user_list = [res["user"] for res in json_response["results"]]
+        user_nicknames = [res["nickname"] for res in user_list]
+        user_profile_images = [res["profile_image"] for res in user_list]
+
+        assert response.status_code == 200
+        assert json_response["count"] == 3
+        assert self.user.id in res_list
+        assert self.user2.id in res_list
+        assert self.user.nickname in user_nicknames
+        assert self.user2.nickname in user_nicknames
+        assert len(user_profile_images) == 3
+
     def test_should_accept_filter_on_user_and_list_gardens(self):
         response = self.client.get("/api/gardens", {"user_id": self.user2.id})
         json_response = json.loads(response.content)
-        user_id_list = []
-        for res in json_response["results"]:
-            user_id_list.append(res["user_id"])
-        garden_id_list = []
-        for res in json_response["results"]:
-            garden_id_list.append(res["id"])
+        user_id_list = [res["user_id"] for res in json_response["results"]]
+        garden_id_list = [res["id"] for res in json_response["results"]]
 
         assert response.status_code == 200
         assert json_response["count"] == 2
@@ -110,9 +121,8 @@ class TestListGardens(APITestCase):
     def test_should_accept_filter_on_zipcode_and_list_gardens(self):
         response = self.client.get("/api/gardens", {"zipcode": "75001"})
         json_response = json.loads(response.content)
-        zipcode_list = []
-        for res in json_response["results"]:
-            zipcode_list.append(res["zipcode"])
+        zipcode_list = [res["zipcode"] for res in json_response["results"]]
+
         assert response.status_code == 200
         assert json_response["count"] == 2
         assert "93100" not in zipcode_list
@@ -121,10 +131,10 @@ class TestListGardens(APITestCase):
 class TestUdateGarden(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            "hello@world", "hello_world_123", has_garden=True
+            "hello@world", "hello_world_123"
         )
         self.user2 = User.objects.create_user(
-            "hey@world.fr", "hekolololololo", has_garden=True
+            "hey@world.fr", "hekolololololo"
         )
         self.garden = Garden.objects.create(
             user_id=self.user.id, title="toto", zipcode="75001"
@@ -207,15 +217,10 @@ class TestFetchCommentsOfAGivenUser(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(f"/api/comments?receiver_id={self.user.id}")
         json_response = json.loads(response.content)
-
-        receiver_id_list = []
-        for res in json_response["results"]:
-            receiver_id_list.append(res["id"])
-
-        author_list = []
-        for res in json_response["results"]:
-            author_list.append(res["author"])
+        receiver_id_list = [res["id"] for res in json_response["results"]]
+        author_list = [res["author"] for res in json_response["results"]]
         author = author_list[0]
+
         assert response.status_code == 200
         assert json_response["count"] == 1
         assert self.user2.id not in receiver_id_list
@@ -307,9 +312,8 @@ class TestListPhotos(APITestCase):
         assert response.status_code == 200
         assert json_response["count"] == 2
 
-        garden_id_list = []
-        for value in json_response["results"]:
-            garden_id_list.append(value["garden_id"])
+        garden_id_list = [item["garden_id"]
+                          for item in json_response["results"]]
         assert self.garden.id in garden_id_list
         assert self.garden2.id in garden_id_list
 
@@ -319,9 +323,8 @@ class TestListPhotos(APITestCase):
         assert response.status_code == 200
         assert json_response["count"] == 1
 
-        garden_id_list = []
-        for value in json_response["results"]:
-            garden_id_list.append(value["garden_id"])
+        garden_id_list = [item["garden_id"]
+                          for item in json_response["results"]]
 
         assert self.garden.id in garden_id_list
         assert self.garden2.id not in garden_id_list
@@ -421,10 +424,8 @@ class TestListConversationsWithLatestMessage(APITestCase):
             f"/api/conversations?current_user_id={self.user.id}")
         json_response = json.loads(response.content)
         assert response.status_code == 200
-        latest_message_list = []
-        for result in json_response["results"]:
-            latest_message = result["latest_message"]["content"]
-            latest_message_list.append(latest_message)
+        latest_message_list = [item["latest_message"]["content"]
+                               for item in json_response["results"]]
         assert self.message2.content in latest_message_list
         assert self.message.content not in latest_message_list
 
@@ -441,10 +442,8 @@ class TestListConversationsWithLatestMessage(APITestCase):
         response = self.client.get(
             f"/api/conversations?current_user_id={self.user.id}")
         json_response = json.loads(response.content)
-        latest_message_list = []
-        for result in json_response["results"]:
-            latest_message = result["latest_message"]["content"]
-            latest_message_list.append(latest_message)
+        latest_message_list = [item["latest_message"]["content"]
+                               for item in json_response["results"]]
         assert response.status_code == 200
         assert json_response["count"] == 2
         assert self.message2.content in latest_message_list

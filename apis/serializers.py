@@ -26,10 +26,11 @@ class PhotoSerializer(serializers.ModelSerializer):
 class GardenSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     user_id = serializers.IntegerField()
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Garden
-        fields = ("id", "user_id", "title", "description",
+        fields = ("id", "user_id", "user", "title", "description",
                   "zipcode", "image", "address")
         read_only_fields = ("image",)
         write_only_fields = ("address",)
@@ -59,6 +60,15 @@ class GardenSerializer(serializers.ModelSerializer):
             user = get_object_or_404(User, pk=user_id)
             validated_data["user"] = user
         return super().create(validated_data)
+
+    def get_user(self, obj):
+        try:
+            user = get_object_or_404(User, pk=obj.user_id)
+            serializer = UserSerializer(
+                user, context={"request": self.context.get("request")})
+            return serializer.data
+        except ObjectDoesNotExist:
+            return {}
 
 
 class CommentSerializer(serializers.ModelSerializer):
